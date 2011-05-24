@@ -34,8 +34,6 @@ int main(int argc, char *argv[]){
     inputthread.start();
     //quadraped
     CQPed quadraped;
-    printf("%e\n",quadraped.servoArray[2].pulsewidthToAngle(72));
-    printf("%d\n",quadraped.servoArray[2].angleToPulsewidth(.1));
     //main loop
     #define SPEED 0.2
     while(running){
@@ -48,6 +46,14 @@ int main(int argc, char *argv[]){
                     running=0; //q quits the program
                     break;
                 case 'c':
+                    break;
+                case ']':
+                    quadraped.changeRotation(0,0,-0.05);
+                    quadraped.sendToDev();
+                    break;
+                case '[':
+                    quadraped.changeRotation(0,0,0.05);
+                    quadraped.sendToDev();
                     break;
                 case 'f':
                     quadraped.moveRelative(0, 0, -SPEED);
