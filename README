@@ -8,6 +8,7 @@ keyboard:
  '!' to '%' and ')' : select servo (0..5)
  '-' '+' : decrement, increment servo angle
  wasd : change main body posistion (up left down right)
+ 'f' 'g' change main body position (z axis)
  '`' : reset and reconnect usb.
  'p' : print positions and angles
 

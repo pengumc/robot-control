@@ -270,6 +270,7 @@ int CUsbDevice::sendCtrlMsg(int request, int reqType, int wval, int wind, char *
         );
         if (cnt < 0){
             fprintf(stderr, "usb_control_msg: %s\n",usb_strerror());
+            connected--;
         } else connected = USBRETRY;
     }else {
         printf("sendCtrlMsg: not connected...\n");

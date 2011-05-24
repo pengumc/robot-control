@@ -18,7 +18,7 @@ class CQPed{
         ///prints the x and y positions of all legs.
         void printPos();
         ///change the x and y position of the center body.
-        void moveRelative(double X, double Y);
+        void moveRelative(double X, double Y, double Z);
         ///send the servo states to the physical device.
         void sendToDev();
         ///read servo states from physical device.
@@ -107,42 +107,43 @@ void CQPed::assignAngles(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t leg){
         servoArray[s1].setAngle(solver[leg].beta); 
         servoArray[s2].setAngle(solver[leg].gamma);
     }else {
-        servoArray[s0].setAngle(solver[leg].alpha-PI); 
+        servoArray[s0].setAngle(PI-solver[leg].alpha); 
         servoArray[s1].setAngle(PI - solver[leg].beta); 
         servoArray[s2].setAngle(solver[leg].gamma);
    }
 
 }
 
-void CQPed::moveRelative(double X, double Y){
+void CQPed::moveRelative(double X, double Y, double Z){
     //TODO prevent movement on single leg fail
     x[0] += X;
     x[1] += X;
     y[0] += Y;
     y[1] += Y;
+    z[0] += Z;
+    z[1] += Z;
     uint8_t up = 0;
+    int success = 0;
     if (x[0] > -solver[0].p.C ) up =1;
     printf("=== leg 0:\n");
-    if (calcAngles(0, up)==0) assignAngles(0,1,2,0);
-    else {//undo move
-        x[0] -= X;
-        x[1] -= X;
-        y[0] -= Y;
-        y[1] -= Y;
-        return;
-    }
+    success = calcAngles(0, up); 
     up = 1;
     if (x[1] > -solver[1].p.C ) up =0;
     printf("=== leg 1:\n");
-    if (calcAngles(1,up)==0) assignAngles(3,4,5,1);
-    else {//undo move
+    success += calcAngles(1,up);
+    if (success==0) {
+        assignAngles(0,1,2,0);
+        assignAngles(3,4,5,1);
+        printPos();
+    }else {//undo move
         x[0] -= X;
         x[1] -= X;
         y[0] -= Y;
         y[1] -= Y;
-        return;
+        z[0] -= Z;
+        z[1] -= Z;
     }
-    printPos();
+    printf("success = %d\n",success);
 }
 
 void CQPed::printPos(){
