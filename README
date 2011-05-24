@@ -1,0 +1,33 @@
+XY control for 2 connected 3DOF legs
+  .___.X.___.
+./           \.
+|             |
+
+keyboard:
+ 'q' : exit
+ '!' to '%' and ')' : select servo (0..5)
+ '-' '+' : decrement, increment servo angle
+ wasd : change main body posistion (up left down right)
+ '`' : reset and reconnect usb.
+ 'p' : print positions and angles
+
+psx controller:
+ triangle : switch to analog mode (sticks only work in analog mode, indicated by the red led on the controller)
+ right stick : same as wasd (but analog :p)
+ left stick : nothgin
+ left stick + R1: absolute control. i.e. stick halfway top right = main body halfway top right 
+
+
+WINDOWS (minGW)
+g++ (4 or higher)
+libgmp
+libmpc
+libmpfr
+gcc-core
+gsl libraries: http://gnuwin32.sourceforge.net/packages/gsl.htm
+change switch $(LINUX) with $(WINDOWS) in the makefile
+note: some timings are wrong on windows atm, making input slow
+
+
+
+
