@@ -8,8 +8,6 @@ class CQPed{
         CQPed(){reset();}
         ///reconnect and reset the entire thing.
         void reset();
-        ///the usb helper.
-        CUsbDevice usb;
         ///prints the x and y positions of all legs.
         void printPos();
         ///change the x and y position of the center body.
@@ -18,10 +16,19 @@ class CQPed{
         void sendToDev();
         ///read servo states from physical device.
         void readFromDev();
+        ///read PS controller data
+        void readPSController();
         ///change the angle of a single servo by a.
         void changeServo(uint8_t servo, double a);
+        ///array of servos, 3 per leg.
+        CServo2 servoArray[SERVOS];
         ///print the servo angles from memory.
         void printAngles();
+        double getAngle(uint8_t servo);
+        uint8_t getPW(uint8_t servo);
+    private:
+        ///the usb helper.
+        CUsbDevice usb;
         ///x positions per leg
         double x[2];
         ///y positions per leg
@@ -32,11 +39,6 @@ class CQPed{
         CAngle zAxis;
         ///width of the main body
         double width;
-        void determineRotation();
-        void changeRotation(double xaxis, double yaxis, double zaxis);
-    private:
-        ///array of servos, 3 per leg.
-        CServo2 servoArray[SERVOS];
         ///chose the best solution and assign it to the servos
         void assignAngles(
             uint8_t s0, uint8_t s1, uint8_t s2, uint8_t leg);
@@ -80,39 +82,18 @@ void CQPed::reset(){
     solver[1].p.C = 5.5;
 }
 
-/** have a look at the positions of the legs and determine the rotations
-* from them
-*/
-void CQPed::determineRotation(){
-    zAxis = asin((y[1]-y[2])/width);
-    //yAxis
-    //xAxis
+void CQPed::readPSController(){
+    usb.getData();
 }
 
-void CQPed::changeRotation(double xaxis, double yaxis, double zaxis){
-    int success =0;
-    zAxis = zAxis + zaxis; //about time to overload +=?
-    double shiftY = sin(zAxis.get())*width/2;
-    double shiftX = (acos(zAxis.get()))*width/2;//WRONG
-    y[0] += shiftY;
-    y[1] -= shiftY;
-    x[0] += shiftX;
-    x[1] -= shiftX;
-    printPos();
-    success = calcAngles(0) + calcAngles(1);
-    if (success == 0) {
-        assignAngles(0,1,2,0);
-        assignAngles(3,4,5,1);
-    }else{
-        y[0] -= shiftY;
-        y[1] += shiftY;
-        x[0] -= shiftX;
-        x[1] += shiftX;
-        determineRotation();
-    }
-
-
+double CQPed::getAngle(uint8_t servo){
+    return servoArray[servo].getAngle();
 }
+
+uint8_t CQPed::getPW(uint8_t servo){
+    return servoArray[servo].getPW();
+}    
+
 
 void CQPed::assignAngles(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t leg){
     if (leg%2==0){ 

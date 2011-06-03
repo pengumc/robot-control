@@ -1,6 +1,8 @@
-NAME = CServo
+NAME = CGtk
 COMPILER = g++
-FLAGS =-std=c++0x -I../include -L../lib -lgsl -lgslcblas
+GTKFLAGS = $(shell pkg-config --cflags gtk+-2.0)
+GTKLIBS = $(shell pkg-config --libs gtk+-2.0)
+FLAGS =-std=c++0x -I./ -I../include -L../lib -lgsl -lgslcblas $(GTKFLAGS) $(GTKLIBS)
 
 .PHONY:all
 
