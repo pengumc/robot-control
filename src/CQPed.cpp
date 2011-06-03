@@ -26,15 +26,18 @@ class CQPed{
         void printAngles();
         double getAngle(uint8_t servo);
         uint8_t getPW(uint8_t servo);
+        double getX(uint8_t leg);
+        double getY(uint8_t leg);
+        double getZ(uint8_t leg);
     private:
         ///the usb helper.
         CUsbDevice usb;
         ///x positions per leg
-        double x[2];
+        double x[Q_LEGS];
         ///y positions per leg
-        double y[2];
+        double y[Q_LEGS];
         ///z positions per leg
-        double z[2];
+        double z[Q_LEGS];
         ///rotation of the main body around the zAxis
         CAngle zAxis;
         ///width of the main body
@@ -82,6 +85,17 @@ void CQPed::reset(){
     solver[1].p.C = 5.5;
 }
 
+double CQPed::getX(uint8_t leg){
+    return x[leg];
+}
+double CQPed::getY(uint8_t leg){
+
+    return y[leg];
+}
+double CQPed::getZ(uint8_t leg){
+
+    return z[leg];
+}
 void CQPed::readPSController(){
     usb.getData();
 }

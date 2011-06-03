@@ -225,7 +225,7 @@ void CUsbDevice::readServoData(CServo2* servos){
                 //printf("%d,",servoDataBuffer[i]);
                 if ((servoDataBuffer[i] != servoDataBuffer[0]) || (servoDataBuffer[i] > USB_HIGHEST_RQ)) k++;
             }
-            printf("}\n");
+            //printf("}\n");
             if(k==BUFLEN_SERVO_DATA){
                 for (i=0;i<BUFLEN_SERVO_DATA;i++){
                     servos[i].setPW( servoDataBuffer[i]);
