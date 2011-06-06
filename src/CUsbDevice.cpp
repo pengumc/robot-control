@@ -145,6 +145,7 @@ CUsbDevice::CUsbDevice(){
     rawPid = {USB_CFG_DEVICE_ID};
     vid = rawVid[1] * 256 + rawVid[0];
     pid = rawPid[1] * 256 + rawPid[0];
+    connected=0;
     servoDataBuffer = SERVO_DATA_EMPTY;
     PSControllerDataBuffer = SERVO_DATA_EMPTY;
     usb_init();
@@ -216,45 +217,50 @@ void CUsbDevice::readServoData(CServo2* servos){
     if(connected<1)return;
     int i; 
     char k;
-    if (sendCtrlMsg(CUSTOM_RQ_LOAD_POS_FROM_I2C, USB_ENDPOINT_IN,0,0,servoDataBuffer)==0){
+    if(sendCtrlMsg(CUSTOM_RQ_LOAD_POS_FROM_I2C, USB_ENDPOINT_IN,0,0,servoDataBuffer)==0){  
         usleep(10000);
         i=sendCtrlMsg(CUSTOM_RQ_GET_POS, USB_ENDPOINT_IN,0,0,servoDataBuffer);
         if(i>0){
             //printf("received %d {",i);
             for (i=0;i<BUFLEN_SERVO_DATA;i++){
                 //printf("%d,",servoDataBuffer[i]);
-                if ((servoDataBuffer[i] != servoDataBuffer[0]) || (servoDataBuffer[i] > USB_HIGHEST_RQ)) k++;
+                if ((servoDataBuffer[i] != servoDataBuffer[0]) 
+                    || (servoDataBuffer[i] > USB_HIGHEST_RQ))
+                    k++;
             }
             //printf("}\n");
             if(k==BUFLEN_SERVO_DATA){
                 for (i=0;i<BUFLEN_SERVO_DATA;i++){
                     servos[i].setPW( servoDataBuffer[i]);
+                    //printf("got %d:%d\n",i,servoDataBuffer[i]);
                     //servos[i].setAngle = servos[i].pulsewidthToAngle();
                 }
             }else {
                 printf("not ready, trying again.\n");
             }
         }
-    }else printf("readServoData: device was not ready\n");
+    }else printf("readServoData: LOAD_POS_FROM_I2C failed\n");
 
 
 }
 
 
 void CUsbDevice::sendServoData(){
+    if(connected<1) return;
     int i;
     i = sendCtrlMsg(CUSTOM_RQ_SET_DATA, USB_ENDPOINT_OUT, 0,0,servoDataBuffer);
-    printf("sendServoData: %d send\n",i);
+    //printf("sendServoData: %d send\n",i);
 }
 
 void CUsbDevice::sendServoData(CServo2 *servos){
+    if(connected<1) return;
     int i;
     for (i=0;i<BUFLEN_SERVO_DATA;i++){
         servoDataBuffer[i] = servos[i].getPW();
     }
 
     i = sendCtrlMsg(CUSTOM_RQ_SET_DATA, USB_ENDPOINT_OUT, 0,0,servoDataBuffer);
-    printf("sendServoData: %d send\n",i);
+    //printf("sendServoData: %d send\n",i);
 }
 
 int CUsbDevice::sendCtrlMsg(int request, int reqType, int wval, int wind, char *buffer){

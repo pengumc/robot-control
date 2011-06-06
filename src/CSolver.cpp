@@ -91,12 +91,14 @@ int CSolver::solveFor(double X, double Y, double Z, double betaGuess){
         if (status) break;
         status = gsl_multiroot_test_residual(s->f, 0.0034);
     }while (status == GSL_CONTINUE && iter < 1000);
-    printf("status: %s\niter: %d\n", gsl_strerror(status), iter);
-    printf("current pos: [%f , %f , %f]\n",
-        gsl_vector_get(s->x,0),
-        gsl_vector_get(s->x,1),
-        gsl_vector_get(s->x,2)
-    );
+    if(status != GSL_SUCCESS){
+        printf("status: %s\niter: %d\n", gsl_strerror(status), iter);
+        printf("current pos: [%f , %f , %f]\n",
+            gsl_vector_get(s->x,0),
+            gsl_vector_get(s->x,1),
+            gsl_vector_get(s->x,2)
+        );
+    }
     alpha = gsl_vector_get(s->x, 0);    
     beta= gsl_vector_get(s->x, 1);    
     gamma = gsl_vector_get(s->x, 2);    
