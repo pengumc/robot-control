@@ -38,6 +38,7 @@ class CGtk{
         GtkWidget *vbox_mid;
         GtkWidget *vbox_right;
         GtkWidget *button_connect;
+        GtkWidget *button_controller;
 	    GtkWidget *servo_label[SERVOS];
         GtkWidget *position_label[Q_LEGS];
         GtkWidget *da; ///drawing area
@@ -75,8 +76,11 @@ CGtk::CGtk(CQPed *Q){
     button_connect = gtk_button_new();
     show_disconnected();
     gtk_widget_set_size_request(button_connect, 32,32);
+    button_controller = gtk_toggle_button_new();
+    gtk_widget_set_size_request(button_controller, 32,32);
     gtk_box_pack_start(GTK_BOX(vbox_left), hbox_button,FALSE,FALSE,0);
     gtk_box_pack_start(GTK_BOX(hbox_button),button_connect,FALSE,FALSE,0);
+    gtk_box_pack_start(GTK_BOX(hbox_button),button_controller,FALSE,FALSE,0);
     for(i=0;i<SERVOS;i++){
         sprintf(text, LABEL_FORMAT, i,0.0,0);
         servo_label[i] = gtk_check_button_new_with_label(text);
