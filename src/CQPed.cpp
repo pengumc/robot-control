@@ -191,7 +191,6 @@ int CQPed::assignAngles(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t leg){
 
 //returns 0 on success, 1 otherwise
 int CQPed::moveRelative(double X, double Y, double Z){
-    //TODO prevent movement on single leg fail
     x[0] += X;
     x[1] += X;
     y[0] += Y;

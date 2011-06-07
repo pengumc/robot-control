@@ -41,42 +41,6 @@ int _trig_f (const gsl_vector *in, void *params, gsl_vector *out){
 
 }
 
-int _trig_df(const gsl_vector *in, void *params, gsl_matrix *J){
-    //printf("df called\n");
-    const double A = ((struct PARAMS*)params)->A;
-    const double B = ((struct PARAMS*)params)->B;
-    const double C = ((struct PARAMS*)params)->C;
-    const double X = ((struct PARAMS*)params)->X;
-    const double Y = ((struct PARAMS*)params)->Y;
-    const double Z = ((struct PARAMS*)params)->Z;
-    
-    const double a = gsl_vector_get(in, 0);
-    const double b = gsl_vector_get(in, 1);
-    const double c = gsl_vector_get(in, 2);
-
-    const double df00 = -sin(a)*(A+B*cos(b)+C*cos(c+b));
-    const double df01 = cos(a)*(-B*sin(b)-C*sin(c+b));
-    const double df02 = -cos(a)*C*sin(c+b);
-    const double df10 = 0;
-    const double df11 = B*cos(b)+C*cos(c+b);
-    const double df12 = C*cos(c+b);
-    const double df20 = cos(a)*(A+B*cos(b)+C*cos(c+b));
-    const double df21 = sin(a)*(-B*sin(b)-C*sin(c+b));
-    const double df22 = -sin(a)*C*sin(c+b);
-    gsl_matrix_set(J, 0,0, df00);
-    gsl_matrix_set(J, 0,1, df01);
-    gsl_matrix_set(J, 0,2, df02);
-    gsl_matrix_set(J, 1,0, df10);
-    gsl_matrix_set(J, 1,1, df11);
-    gsl_matrix_set(J, 1,2, df12);
-    gsl_matrix_set(J, 2,0, df20);
-    gsl_matrix_set(J, 2,1, df21);
-    gsl_matrix_set(J, 2,2, df22);
-    //printf("%f %f %f\n%f %f %f\n%f %f %f", df00,df01,df02,df10,df11,df12,df20,df21,df22);
-
-    return GSL_SUCCESS;
-
-}
 
 int _trig_fdf(const gsl_vector *in, void *params, gsl_vector *out, gsl_matrix *J){
     _trig_f(in, params, out);
@@ -102,26 +66,7 @@ class CSolver{
         const gsl_multiroot_fsolver_type *T;
         gsl_multiroot_fsolver *s;
         gsl_multiroot_function f;
-        const gsl_multiroot_fdfsolver_type *fdf_T;
-        gsl_multiroot_fdfsolver *fdf_s;
-        gsl_multiroot_function_fdf fdf_f;
-        gsl_matrix *M;
-        
-
-
 };
-void sanitize(gsl_vector *v){
-    int i;
-    for(i=0;i<3;i++){
-        while(gsl_vector_get(v, i) > M_PI){
-            gsl_vector_set(v, i, gsl_vector_get(v,i)-M_PI*2);
-        }
-        while(gsl_vector_get(v, i) < -M_PI){
-            gsl_vector_set(v, i, gsl_vector_get(v,i)+M_PI*2);
-        }
-
-    }
-}
 
 CSolver::CSolver(){
     T = gsl_multiroot_fsolver_hybrid;
@@ -184,37 +129,7 @@ int CSolver::solveFor(double X, double Y, double Z, double betaGuess){
     return status;
 }
 
-int CSolver::solveForFDF(double X, double Y, double Z){
-    gsl_vector_set(x, 0, 0);
-    gsl_vector_set(x, 1, 0.1);
-    gsl_vector_set(x, 2, 0);
-    p.X = X;
-    p.Y = Y;
-    p.Z = Z;
-    fdf_f  = {&_trig_f, &_trig_df, &_trig_fdf, n, &p};
-    gsl_multiroot_fdfsolver_set(fdf_s, &fdf_f, x);
-    iter = 0;
 
-    do{
-        iter++;
-        status = gsl_multiroot_fdfsolver_iterate(fdf_s);
-        if (status) break;
-        status = gsl_multiroot_test_residual(fdf_s->f, 1E-5);
-    }while (status == GSL_CONTINUE && iter < 1000);
-    if(status != GSL_SUCCESS){
-        printf("status: %s\niter: %d\n", gsl_strerror(status), iter);
-        printf("current pos: [%f , %f , %f]\n",
-            gsl_vector_get(fdf_s->x,0),
-            gsl_vector_get(fdf_s->x,1),
-            gsl_vector_get(fdf_s->x,2)
-        );
-    }
-    alpha = gsl_vector_get(fdf_s->x, 0);    
-    beta= gsl_vector_get(fdf_s->x, 1);    
-    gamma = gsl_vector_get(fdf_s->x, 2);    
-
-    return status;
-}
 
 #endif
 #ifndef __MAIN__
