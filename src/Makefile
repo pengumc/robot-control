@@ -1,4 +1,4 @@
-NAME = CGtk
+NAME = CSolver
 COMPILER = g++
 GTKFLAGS = $(shell pkg-config --cflags gtk+-2.0)
 GTKLIBS = $(shell pkg-config --libs gtk+-2.0)
