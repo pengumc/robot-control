@@ -210,8 +210,9 @@ static void timeout_disconnected(gpointer data){
     g_print("disconnected timeout\n");//placeholder
 }
 
-#define BG_COLOR 0.85
+#define BG_COLOR 0.95
 #define SCALE 9.0
+#define LINEWIDTH 4
 static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     CGtk* gui = ((CGtk*)data);
     GtkAllocation alloc;
@@ -253,10 +254,10 @@ static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     y += (sin(b) * B)*SCALE;
     cairo_line_to(cr, x, y);
     cairo_stroke(cr);
-    //line to center
+    //line to servo[4]
     cairo_set_source_rgb(cr, 1,0.9,0);
     cairo_move_to(cr, x,y);
-    x -= (A+6)*SCALE; //distance between servo[0] and 3
+    x -= (12)*SCALE; //distance between servo[0] and 3
     y += 0;
     cairo_line_to(cr, x, y);
     cairo_stroke(cr);
@@ -267,11 +268,6 @@ static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     a = gui->qp->getAngle(3);
     b = gui->qp->getAngle(4);
     c = gui->qp->getAngle(5);
-    //line to servo[4]
-    cairo_move_to(cr, x,y);
-    x -= A*SCALE;
-    cairo_line_to(cr, x, y);
-    cairo_stroke(cr);
     //line to servo[5]
     cairo_move_to(cr, x,y);
     x += (cos(b) * B )*SCALE;
@@ -281,8 +277,8 @@ static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     cairo_stroke(cr);
     //line to endpoint
     cairo_move_to(cr, x,y);
-    x += (cos(b-c) * C) * SCALE;
-    y -= (sin(b-c) * C) * SCALE;
+    x += SCALE * C * cos(b-c);
+    y -= SCALE * C * sin(b-c);
     cairo_set_source_rgb(cr, 1,0,0);
     cairo_line_to(cr, x, y);
     cairo_stroke(cr);
