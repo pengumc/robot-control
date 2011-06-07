@@ -5,11 +5,13 @@
 
 
 NAME = main
-CFLAGS = -Iinclude -Isrc 
+GTKFLAGS = $(shell pkg-config --cflags gtk+-2.0)
+CFLAGS = -Iinclude -Isrc $(GTKFLAGS)
 CPPFLAGS = $(CFLAGS) -std=c++0x  
 USBLIBS := $(shell libusb-config --libs)
+GTKLIBS = $(shell pkg-config --libs gtk+-2.0)
 LIBS =  -Llib -lgslcblas -lgsl $(LINUX) #put either LINUX or WINDOWS here
-LINUX = -lpthread $(USBLIBS)
+LINUX = -lpthread $(USBLIBS) $(GTKLIBS)
 WINDOWS = -lusb 
 #pthread library should be omitted on windows
 COMPILER = g++
