@@ -126,10 +126,10 @@ class CUsbDevice{
         void printA();
         void printB();
         void getData();
-//    private:
+    private:
         usb_dev_handle *handle;
-        char bufferA[BUFLEN_SERVO_DATA];
-        char bufferB[BUFLEN_SERVO_DATA];
+        char servoDataBuffer[BUFLEN_SERVO_DATA];
+        char PSControllerDataBuffer[BUFLEN_SERVO_DATA];
         char vendor[USB_CFG_VENDOR_NAME_LEN+1];
         char product[USB_CFG_DEVICE_NAME_LEN+1];
         unsigned char rawVid[2];
@@ -145,21 +145,23 @@ CUsbDevice::CUsbDevice(){
     rawPid = {USB_CFG_DEVICE_ID};
     vid = rawVid[1] * 256 + rawVid[0];
     pid = rawPid[1] * 256 + rawPid[0];
-    bufferA = SERVO_DATA_EMPTY;
-    bufferB = SERVO_DATA_EMPTY;
+    connected=0;
+    servoDataBuffer = SERVO_DATA_EMPTY;
+    PSControllerDataBuffer = SERVO_DATA_EMPTY;
     usb_init();
 }
 
 void CUsbDevice::getData(){
+    if(connected<1) return;
     char i;
-    sendCtrlMsg(CUSTOM_RQ_GET_DATA, USB_ENDPOINT_IN,0,0,bufferB);
-//    printf("Right X = %d\n",bufferB[5]);
-//    printf("Right Y = %d\n",bufferB[6]);
-//    printf("Left X = %d\n",bufferB[7]);
-//    printf("Left Y = %d\n",bufferB[8]);
+    sendCtrlMsg(CUSTOM_RQ_GET_DATA, USB_ENDPOINT_IN,0,0,PSControllerDataBuffer);
+//    printf("Right X = %d\n",PSControllerDataBuffer[5]);
+//    printf("Right Y = %d\n",PSControllerDataBuffer[6]);
+//    printf("Left X = %d\n",PSControllerDataBuffer[7]);
+//    printf("Left Y = %d\n",PSControllerDataBuffer[8]);
 //        printf("data received %d {",i);
 //        for (i=0;i<BUFLEN_SERVO_DATA;i++){
-//            printf("0x%hX,",bufferB[i]);
+//            printf("0x%hX,",PSControllerDataBuffer[i]);
 //        }
 //        printf("}\n");
 }
@@ -168,7 +170,7 @@ void CUsbDevice::printA(){
     char i;
     printf("buffer A: {");
     for (i=0;i<BUFLEN_SERVO_DATA;i++){
-        printf("%d,",bufferA[i]);
+        printf("%d,",servoDataBuffer[i]);
     }
     printf("}\n");
 }
@@ -176,7 +178,7 @@ void CUsbDevice::printB(){
     char i;
     printf("buffer B: {");
     for (i=0;i<BUFLEN_SERVO_DATA;i++){
-        printf("%d,",bufferB[i]);
+        printf("%d,",PSControllerDataBuffer[i]);
     }
     printf("}\n");
 }
@@ -194,14 +196,15 @@ int8_t CUsbDevice::connect(){
 }
 
 void CUsbDevice::readServoData(){
+    if(connected<1) return;
     int i; 
     char k;
-    if (sendCtrlMsg(CUSTOM_RQ_LOAD_POS_FROM_I2C, USB_ENDPOINT_IN,0,0,bufferA)==0){;
-        i=sendCtrlMsg(CUSTOM_RQ_GET_POS, USB_ENDPOINT_IN,0,0,bufferA);
+    if (sendCtrlMsg(CUSTOM_RQ_LOAD_POS_FROM_I2C, USB_ENDPOINT_IN,0,0,servoDataBuffer)==0){;
+        i=sendCtrlMsg(CUSTOM_RQ_GET_POS, USB_ENDPOINT_IN,0,0,servoDataBuffer);
         if(i>0){
                 printf("received %d {",i);
                 for (i=0;i<BUFLEN_SERVO_DATA;i++){
-                    printf("%d,",bufferA[i]);
+                    printf("%d,",servoDataBuffer[i]);
                 }
                 printf("}\n");
         }
@@ -211,47 +214,53 @@ void CUsbDevice::readServoData(){
 }
 
 void CUsbDevice::readServoData(CServo2* servos){
+    if(connected<1)return;
     int i; 
     char k;
-    if (sendCtrlMsg(CUSTOM_RQ_LOAD_POS_FROM_I2C, USB_ENDPOINT_IN,0,0,bufferA)==0){
+    if(sendCtrlMsg(CUSTOM_RQ_LOAD_POS_FROM_I2C, USB_ENDPOINT_IN,0,0,servoDataBuffer)==0){  
         usleep(10000);
-        i=sendCtrlMsg(CUSTOM_RQ_GET_POS, USB_ENDPOINT_IN,0,0,bufferA);
+        i=sendCtrlMsg(CUSTOM_RQ_GET_POS, USB_ENDPOINT_IN,0,0,servoDataBuffer);
         if(i>0){
-            printf("received %d {",i);
+            //printf("received %d {",i);
             for (i=0;i<BUFLEN_SERVO_DATA;i++){
-                printf("%d,",bufferA[i]);
-                if ((bufferA[i] != bufferA[0]) || (bufferA[i] > USB_HIGHEST_RQ)) k++;
+                //printf("%d,",servoDataBuffer[i]);
+                if ((servoDataBuffer[i] != servoDataBuffer[0]) 
+                    || (servoDataBuffer[i] > USB_HIGHEST_RQ))
+                    k++;
             }
-            printf("}\n");
+            //printf("}\n");
             if(k==BUFLEN_SERVO_DATA){
                 for (i=0;i<BUFLEN_SERVO_DATA;i++){
-                    servos[i].setPW( bufferA[i]);
+                    servos[i].setPW( servoDataBuffer[i]);
+                    //printf("got %d:%d\n",i,servoDataBuffer[i]);
                     //servos[i].setAngle = servos[i].pulsewidthToAngle();
                 }
             }else {
                 printf("not ready, trying again.\n");
             }
         }
-    }else printf("readServoData: device was not ready\n");
+    }else printf("readServoData: LOAD_POS_FROM_I2C failed\n");
 
 
 }
 
 
 void CUsbDevice::sendServoData(){
+    if(connected<1) return;
     int i;
-    i = sendCtrlMsg(CUSTOM_RQ_SET_DATA, USB_ENDPOINT_OUT, 0,0,bufferA);
-    printf("sendServoData: %d send\n",i);
+    i = sendCtrlMsg(CUSTOM_RQ_SET_DATA, USB_ENDPOINT_OUT, 0,0,servoDataBuffer);
+    //printf("sendServoData: %d send\n",i);
 }
 
 void CUsbDevice::sendServoData(CServo2 *servos){
+    if(connected<1) return;
     int i;
     for (i=0;i<BUFLEN_SERVO_DATA;i++){
-        bufferA[i] = servos[i].getPW();
+        servoDataBuffer[i] = servos[i].getPW();
     }
 
-    i = sendCtrlMsg(CUSTOM_RQ_SET_DATA, USB_ENDPOINT_OUT, 0,0,bufferA);
-    printf("sendServoData: %d send\n",i);
+    i = sendCtrlMsg(CUSTOM_RQ_SET_DATA, USB_ENDPOINT_OUT, 0,0,servoDataBuffer);
+    //printf("sendServoData: %d send\n",i);
 }
 
 int CUsbDevice::sendCtrlMsg(int request, int reqType, int wval, int wind, char *buffer){

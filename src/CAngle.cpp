@@ -2,7 +2,10 @@
 #define __ANGLE_H__
 #include <stdio.h>
 #include <stdlib.h>
-#define PI 3.14159265
+#ifndef PI
+    #include <math.h>
+    #define PI M_PI
+#endif
 //-----------------------------------------------------------------------------
 using namespace std;
 
