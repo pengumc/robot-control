@@ -1,25 +1,21 @@
-XY control for 2 connected 3DOF legs
+Version 0.2
+XY control for 2 connected 3DOF legs with gtk gui
   .___.X.___.
 ./           \.
 |             |
 
 keyboard:
  'q' : exit
- '!' to '%' and ')' : select servo (0..5)
- '-' '+' : decrement, increment servo angle
  wasd : change main body posistion (up left down right)
- 'f' 'g' change main body position (z axis)
  '`' : reset and reconnect usb.
- 'p' : print positions and angles
+ any key will refresh the actual servo positions stored in the device.
 
-psx controller:
- triangle : switch to analog mode (sticks only work in analog mode, indicated by the red led on the controller)
- right stick : same as wasd (but analog :p)
- left stick : nothgin
- left stick + R1: absolute control. i.e. stick halfway top right = main body halfway top right 
-
+GUI
+some visualization has bee added.
 
 WINDOWS (minGW)
+gtk is being a bitch on windows so support is dropped for now.
+
 g++ (4 or higher)
 libgmp
 libmpc
