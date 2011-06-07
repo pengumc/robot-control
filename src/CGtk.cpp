@@ -30,7 +30,7 @@ class CGtk{
         void updateServoData();
         void updatePositions();
         void updatePSControllerData();
-   // private:
+    private:
         GtkWidget *window;
         GtkWidget *hbox_main;
         GtkWidget *vbox_left;

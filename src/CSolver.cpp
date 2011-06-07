@@ -42,12 +42,6 @@ int _trig_f (const gsl_vector *in, void *params, gsl_vector *out){
 }
 
 
-int _trig_fdf(const gsl_vector *in, void *params, gsl_vector *out, gsl_matrix *J){
-    _trig_f(in, params, out);
-    _trig_df(in, params, J);
-    return GSL_SUCCESS;
-}
-
 class CSolver{
     public:
         CSolver();
@@ -71,8 +65,6 @@ class CSolver{
 CSolver::CSolver(){
     T = gsl_multiroot_fsolver_hybrid;
     s = gsl_multiroot_fsolver_alloc(T,n);
-    fdf_T = gsl_multiroot_fdfsolver_hybridj;
-    fdf_s = gsl_multiroot_fdfsolver_alloc(fdf_T,n);
     p = {3, 6.5, 5.5, 0,0,0};//default values for testing
     x = gsl_vector_alloc(n);
 
@@ -80,7 +72,6 @@ CSolver::CSolver(){
 
 CSolver::~CSolver(){
     gsl_multiroot_fsolver_free(s);
-    gsl_multiroot_fdfsolver_free(fdf_s);
     gsl_vector_free(x);
 }
 int test_res(gsl_multiroot_fsolver *s, solverParams_t *params){
