@@ -47,14 +47,6 @@ int main(int argc, char *argv[]){
                     break;
                 case 'c':
                     break;
-                case ']':
-                    quadraped.changeRotation(0,0,-0.05);
-                    quadraped.sendToDev();
-                    break;
-                case '[':
-                    quadraped.changeRotation(0,0,0.05);
-                    quadraped.sendToDev();
-                    break;
                 case 'f':
                     quadraped.moveRelative(0, 0, -SPEED);
                     quadraped.sendToDev();
@@ -143,28 +135,28 @@ int main(int argc, char *argv[]){
             if (quadraped.usb.connected>0){
             quadraped.usb.getData();
             //right stick, incremental control
-            int8_t temp = ((uint8_t)quadraped.usb.bufferB[6]-128);
+            int8_t temp = ((uint8_t)quadraped.usb.PSControllerDataBuffer[6]-128);
             if (abs(temp) > SENS) {
                 trigger=1;
                 printf("%d\n",temp);
                 quadraped.moveRelative(0, ((float)temp)/DIV,0);
             }
-            temp = ((uint8_t)quadraped.usb.bufferB[5]-128);
+            temp = ((uint8_t)quadraped.usb.PSControllerDataBuffer[5]-128);
             if (abs(temp) > SENS) {
                 trigger=1;
                 printf("%d\n",temp);
                 quadraped.moveRelative(-((float)temp)/DIV,0,0);
             }
             //right stick, absolute control (R1 down)
-            temp =  ((uint8_t)quadraped.usb.bufferB[5]-128);
-            if(!(quadraped.usb.bufferB[2] & 8)){
+            temp =  ((uint8_t)quadraped.usb.PSControllerDataBuffer[5]-128);
+            if(!(quadraped.usb.PSControllerDataBuffer[2] & 8)){
                 trigger=1;
                 quadraped.x[0] = 9.0 - ((float)temp)/64;
                 quadraped.x[1] = -8 - ((float)temp)/64;
                 quadraped.moveRelative(0,0,0);
             }
-            temp =  ((uint8_t)quadraped.usb.bufferB[6]-128);
-            if(!(quadraped.usb.bufferB[2] & 8)){//R1
+            temp =  ((uint8_t)quadraped.usb.PSControllerDataBuffer[6]-128);
+            if(!(quadraped.usb.PSControllerDataBuffer[2] & 8)){//R1
                 trigger=1;
                 quadraped.y[0] = - 5.5 + (float)(temp/64);
                 quadraped.y[1] = - 5.5 + (float)(temp/64);

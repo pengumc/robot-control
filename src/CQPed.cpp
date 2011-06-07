@@ -52,8 +52,6 @@ class CQPed{
         double getY(uint8_t leg);
         double getZ(uint8_t leg);
         void updateSolverParams();
-        void updatePivots();
-    private:
         ///the usb helper.
         CUsbDevice usb;
         ///x positions per leg
@@ -62,6 +60,9 @@ class CQPed{
         double y[Q_LEGS];
         ///z positions per leg
         double z[Q_LEGS];
+
+        void updatePivots();
+    private:
         ///rotation of the main body around the zAxis
         CAngle zAxis;
         ///width of the main body
