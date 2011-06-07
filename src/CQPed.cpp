@@ -66,8 +66,8 @@ class CQPed{
         CAngle zAxis;
         ///width of the main body
         double width;
-        ///chose the best solution and assign it to the servos
-        void assignAngles(
+        ///chose the best solution and assign it to the servos, returns 1 on failure
+        int assignAngles(
             uint8_t s0, uint8_t s1, uint8_t s2, uint8_t leg);
         ///solver for x,y,z -> a,b,c
         CSolver solver[Q_LEGS];
@@ -163,22 +163,34 @@ uint8_t CQPed::getPW(uint8_t servo){
 }    
 
 
-void CQPed::assignAngles(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t leg){
+int CQPed::assignAngles(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t leg){
+    uint8_t valid=0;
+    double a,b,c;
     if (leg%2==0){ 
+        a = solver[leg].alpha;
+        b = solver[leg].beta;
+        c = solver[leg].gamma;
+        valid = servoArray[s0].isValid(a) + servoArray[s1].isValid(b) + servoArray[s2].isValid(c);
+        if (valid < 3) return 1;
         servoArray[s0].setAngle(solver[leg].alpha); 
         servoArray[s1].setAngle(solver[leg].beta); 
         servoArray[s2].setAngle(solver[leg].gamma);
     }else {
+        a = PI - solver[leg].alpha;
+        b = PI - solver[leg].beta;
+        c = solver[leg].gamma;
+        valid = servoArray[s0].isValid(a) + servoArray[s1].isValid(b) + servoArray[s2].isValid(c);
+        if (valid < 3) return 1;
         servoArray[s0].setAngle(PI-solver[leg].alpha); 
         servoArray[s1].setAngle(PI - solver[leg].beta); 
         servoArray[s2].setAngle(solver[leg].gamma);
    }
+   return 0;
 
 }
 
 //returns 0 on success, 1 otherwise
 int CQPed::moveRelative(double X, double Y, double Z){
-    //TODO prevent movement on single leg fail
     x[0] += X;
     x[1] += X;
     y[0] += Y;
@@ -192,19 +204,19 @@ int CQPed::moveRelative(double X, double Y, double Z){
     up = 1;
     if (x[1] > -solver[1].p.C ) up =0;
     success += calcAngles(1);
-    if (success==0) {
-        assignAngles(0,1,2,0);
-        assignAngles(3,4,5,1);
+    switch (success) {
+    case 0:
+        if( assignAngles(0,1,2,0)) return 1;
+        if( assignAngles(3,4,5,1)) return 1;
         return 0;
-    }else {//undo move
-        x[0] -= X;
-        x[1] -= X;
-        y[0] -= Y;
-        y[1] -= Y;
-        z[0] -= Z;
-        z[1] -= Z;
-        return 1;
-    }
+    } //undo move
+    x[0] -= X;
+    x[1] -= X;
+    y[0] -= Y;
+    y[1] -= Y;
+    z[0] -= Z;
+    z[1] -= Z;
+    return 1;
     //printf("success = %d\n",success);
 }
 
@@ -213,11 +225,11 @@ void CQPed::printPos(){
 }
 
 uint8_t CQPed::calcAngles(uint8_t leg){
-    double guess =-0.01;
+    double guess =0.01;
     uint8_t temp;
-    if (x[leg] > solver[leg].p.C) guess = 0.01;
+    if (x[leg] > solver[leg].p.C) guess = -0.01;
     if (leg%2==0) temp= solver[leg].solveFor(x[leg], y[leg], z[leg], guess);
-    else temp =  solver[leg].solveFor(-x[leg], y[leg], z[leg], -guess);
+    else temp =  solver[leg].solveFor(-x[leg], y[leg], z[leg], guess);
     return temp;    
 }
 

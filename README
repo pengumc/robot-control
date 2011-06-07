@@ -1,4 +1,4 @@
-Version 0.2
+Version 0.3
 XY control for 2 connected 3DOF legs with gtk gui
   .___.X.___.
 ./           \.
@@ -25,6 +25,9 @@ gsl libraries: http://gnuwin32.sourceforge.net/packages/gsl.htm
 change switch $(LINUX) with $(WINDOWS) in the makefile
 note: some timings are wrong on windows atm, making input slow
 
+fixes in 0.3:
+-solver had a typo in one of the fomulas.
+-neither of the legs will move if one of them can't.    
 
 
 

@@ -16,6 +16,7 @@ class CServo2{
         double pulsewidthToAngle(uint8_t s); 
         uint8_t angleToPulsewidth();
         uint8_t angleToPulsewidth(double s);
+        ///returns 1 if angle is valid
         uint8_t isValid(double s);
         void setAngle(double s);
         void changeAngle(double s);
