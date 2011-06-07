@@ -30,7 +30,7 @@ int _trig (const gsl_vector *in, void *params, gsl_vector *out){
     const double c = gsl_vector_get(in, 2);
 
     const double x = cos(a)*(A + B * cos(b) + C * cos(c+b)) - X; 
-    const double y = sin(b) *B + sin(c) * C -Y;
+    const double y = sin(b) *B + sin(b+c) * C -Y;
     const double z = sin(a)*(A + B * cos(b) + C * cos(c+b)) - Z;
 
     gsl_vector_set(out, 0, x);
