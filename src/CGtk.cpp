@@ -220,12 +220,12 @@ static void connect_clicked_cb(GtkButton *button, gpointer data){
 
 static gboolean timeout1(gpointer data){
     CGtk* gui = ((CGtk*)data);
+    if(gui->running == 0) return FALSE;
     gui->qp->fillPSController();
     gui->updateGamePadDrawing();
     if(gui->qp->getConnected()>1) gui->show_connected();
     else gui->show_disconnected();
-    if(gui->running) TRUE;
-    else return FALSE;
+    return TRUE;
 }
 
 static void timeout_disconnected(gpointer data){
@@ -250,7 +250,8 @@ void drawTriangle(cairo_t *cr, double x, double y, double size, uint8_t turn){
 }
 
 #define BG_COLOR 1
-#define DPADSPACING 25
+#define DPADSPACING 35 //also used for shapes
+#define STICKSIZE  60
 //draw shapes for evey button, vary the color depending on the button state
 static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     CGtk* gui = ((CGtk*)data);
@@ -260,9 +261,10 @@ static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     cr = gdk_cairo_create(widget->window);
     cairo_set_source_rgb(cr,BG_COLOR,BG_COLOR,BG_COLOR);
     cairo_paint(cr);
-//    const double baseX = alloc.width/2;
-//    const double baseY = alloc.height/2;
-    const double dpadCenterX = alloc.width/5;
+    const double baseX = alloc.width/6*3;
+    const double baseY = alloc.height/3;
+//DPAD
+    const double dpadCenterX = alloc.width/6*1;
     const double dpadCenterY = alloc.height * 1/3;
     //up button
     if(gui->qp->pscon.getSSDpad(UP)) cairo_set_source_rgb(cr, 1,0,0);
@@ -280,8 +282,90 @@ static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     if(gui->qp->pscon.getSSDpad(LEFT)) cairo_set_source_rgb(cr, 1,0,0);
     else cairo_set_source_rgb(cr, 0,0,0);
     drawTriangle(cr, dpadCenterX-DPADSPACING, dpadCenterY, 20,3);
+//START SELECT
+    //start
+    if(gui->qp->pscon.getSSDpad(START)) cairo_set_source_rgb(cr, 1,0,0);
+    else cairo_set_source_rgb(cr, 0,0,0);
+    cairo_rectangle(cr, baseX+DPADSPACING/2, baseY,30, 15);
+    cairo_stroke(cr);
+    //select
+    if(gui->qp->pscon.getSSDpad(SELECT)) cairo_set_source_rgb(cr, 1,0,0);
+    else cairo_set_source_rgb(cr, 0,0,0);
+    cairo_rectangle(cr, baseX-30-DPADSPACING/2, baseY,30, 15);
+    cairo_stroke(cr);
+//shapes
+    const double shapesCenterX = alloc.width/6*5;
+    const double shapesCenterY = alloc.height * 1/3;
+    //triangle
+    if(gui->qp->pscon.getShoulderShapes(TRIANGLE)) cairo_set_source_rgb(cr, 1,0,0);
+    else cairo_set_source_rgb(cr, 0,0,0);
+    drawTriangle(cr, shapesCenterX, shapesCenterY - DPADSPACING, 20,0);
+    //cross
+    if(gui->qp->pscon.getShoulderShapes(CROSS)) cairo_set_source_rgb(cr, 1,0,0);
+    else cairo_set_source_rgb(cr, 0,0,0);
+    cairo_move_to(cr, shapesCenterX+10, shapesCenterY + DPADSPACING-10);
+    cairo_rel_line_to(cr, -20, +20);
+    cairo_rel_move_to(cr, 20,0);
+    cairo_rel_line_to(cr, -20, -20);
+    cairo_stroke(cr);
+    //square
+    if(gui->qp->pscon.getShoulderShapes(SQUARE)) cairo_set_source_rgb(cr, 1,0,0);
+    else cairo_set_source_rgb(cr, 0,0,0);
+    cairo_rectangle(cr, shapesCenterX-DPADSPACING-10,shapesCenterY-10,20,20);
+    cairo_stroke(cr);
+    //circle
+    if(gui->qp->pscon.getShoulderShapes(CIRCLE)) cairo_set_source_rgb(cr, 1,0,0);
+    else cairo_set_source_rgb(cr, 0,0,0);
+    cairo_arc(cr, shapesCenterX + DPADSPACING, shapesCenterY, 10, 0, -2*PI-0.0001);
+    cairo_stroke(cr);
+//left stick
+    const double leftCenterX = (dpadCenterX+baseX)/2;
+    const double leftCenterY = alloc.height/3*2;
+    //boundary circle
+    cairo_set_source_rgb(cr, 0,0,0);
+    cairo_move_to(cr, leftCenterX,leftCenterY-STICKSIZE/2);
+    cairo_rel_line_to(cr, 0, STICKSIZE);
+    cairo_move_to(cr, leftCenterX-STICKSIZE/2, leftCenterY);
+    cairo_rel_line_to(cr, STICKSIZE, 0);
+    cairo_arc(cr, leftCenterX, leftCenterY, STICKSIZE/2, 0, -2*PI-0.0001);
+    cairo_stroke(cr);
+    //marker
+    cairo_set_source_rgb(cr, 1,0,0);
+    double dx = ((double)gui->qp->pscon.getLx())/140*STICKSIZE/2;
+    double dy = ((double)gui->qp->pscon.getLy())/140*STICKSIZE/2;
+    cairo_arc(cr, leftCenterX +dx, leftCenterY + dy,STICKSIZE/10, 0, -2*PI-0.0001);
+    cairo_stroke(cr);
+//right stick
+    const double rightCenterX = (shapesCenterX + baseX)/2;
+    const double rightCenterY = alloc.height/3*2;
+    //boundary circle
+    cairo_set_source_rgb(cr, 0,0,0);
+    cairo_move_to(cr, rightCenterX,rightCenterY-STICKSIZE/2);
+    cairo_rel_line_to(cr, 0, STICKSIZE);
+    cairo_move_to(cr, rightCenterX-STICKSIZE/2, rightCenterY);
+    cairo_rel_line_to(cr, STICKSIZE, 0);
+    cairo_arc(cr, rightCenterX, rightCenterY, STICKSIZE/2, 0, -2*PI-0.0001);
+    cairo_stroke(cr);
+    //marker
+    cairo_set_source_rgb(cr, 1,0,0);
+    dx = ((double)gui->qp->pscon.getRx())/140*STICKSIZE/2;
+    dy = ((double)gui->qp->pscon.getRy())/140*STICKSIZE/2;
+    cairo_arc(cr, rightCenterX +dx, leftCenterY + dy,STICKSIZE/10, 0, -2*PI-0.0001);
+    cairo_stroke(cr);
+//grid
+//    cairo_move_to(cr, alloc.width/6*1, 0);
+//    cairo_rel_line_to(cr, 0, alloc.height);
+//    cairo_move_to(cr, alloc.width/6*2, 0);
+//    cairo_rel_line_to(cr, 0, alloc.height);
+//    cairo_move_to(cr, alloc.width/6*3, 0);
+//    cairo_rel_line_to(cr, 0, alloc.height);
+//    cairo_move_to(cr, alloc.width/6*4, 0);
+//    cairo_rel_line_to(cr, 0, alloc.height);
+//    cairo_move_to(cr, alloc.width/6*5, 0);
+//    cairo_rel_line_to(cr, 0, alloc.height);
+//    cairo_stroke(cr);    
+        cairo_destroy(cr);    
 
-    cairo_destroy(cr);    
 }
 
 
