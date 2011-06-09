@@ -7,6 +7,7 @@
 #define PI M_PI
 
 #include "CSolver.cpp"
+#include "CPSController.cpp"
 #include "CServo.cpp"
 #include "CUsbDevice.cpp"
 #include "CQPed.cpp"

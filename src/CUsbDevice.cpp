@@ -23,10 +23,10 @@ class CUsbDevice{
         void printA();
         void printB();
         void getData();
+        char PSControllerDataBuffer[BUFLEN_SERVO_DATA];
     private:
         usb_dev_handle *handle;
         char servoDataBuffer[BUFLEN_SERVO_DATA];
-        char PSControllerDataBuffer[BUFLEN_SERVO_DATA];
         char vendor[USB_CFG_VENDOR_NAME_LEN+1];
         char product[USB_CFG_DEVICE_NAME_LEN+1];
         unsigned char rawVid[2];
