@@ -30,7 +30,7 @@ class CGtk{
         void connect_timeout();
         void updateServoData();
         void updatePositions();
-        void updatePSControllerData();
+        void updateGamePadDrawing();
     private:
         GtkWidget *window;
         GtkWidget *vbox_main;        
@@ -132,6 +132,10 @@ void CGtk::show_disconnected(){
     gtk_button_set_image(GTK_BUTTON(button_connect),img);
 }
 
+void CGtk::updateGamePadDrawing(){
+    paintGP(gamepadDrawing, NULL, this);
+}
+
 void CGtk::updateServoData(){
     qp->readFromDev();
     uint8_t i;
@@ -169,9 +173,6 @@ void CGtk::updatePositions(){
     }
 }
 
-void CGtk::updatePSControllerData(){
-    qp->readPSController();
-}
 
 
 static gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer data){
@@ -220,6 +221,7 @@ static void connect_clicked_cb(GtkButton *button, gpointer data){
 static gboolean timeout1(gpointer data){
     CGtk* gui = ((CGtk*)data);
     gui->qp->fillPSController();
+    gui->updateGamePadDrawing();
     if(gui->qp->getConnected()>1) gui->show_connected();
     else gui->show_disconnected();
     if(gui->running) TRUE;
@@ -248,6 +250,7 @@ void drawTriangle(cairo_t *cr, double x, double y, double size, uint8_t turn){
 }
 
 #define BG_COLOR 1
+#define DPADSPACING 25
 //draw shapes for evey button, vary the color depending on the button state
 static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     CGtk* gui = ((CGtk*)data);
@@ -257,17 +260,26 @@ static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     cr = gdk_cairo_create(widget->window);
     cairo_set_source_rgb(cr,BG_COLOR,BG_COLOR,BG_COLOR);
     cairo_paint(cr);
-    const double baseX = alloc.width/2;
-    const double baseY = alloc.height/2;
+//    const double baseX = alloc.width/2;
+//    const double baseY = alloc.height/2;
+    const double dpadCenterX = alloc.width/5;
+    const double dpadCenterY = alloc.height * 1/3;
     //up button
-    cairo_set_source_rgb(cr, 1,0,0);
-    drawTriangle(cr, baseX-50, baseY, 20,0);
-    cairo_set_source_rgb(cr, 0,0,0);
-    drawTriangle(cr, baseX, baseY, 20,1);
-    cairo_set_source_rgb(cr, 0,0,1);
-    drawTriangle(cr, baseX+50, baseY, 20,2);
-    cairo_set_source_rgb(cr, 0,1,0);
-    drawTriangle(cr, baseX+100, baseY, 20,3);
+    if(gui->qp->pscon.getSSDpad(UP)) cairo_set_source_rgb(cr, 1,0,0);
+    else cairo_set_source_rgb(cr, 0,0,0);
+    drawTriangle(cr, dpadCenterX, dpadCenterY - DPADSPACING, 20,0);
+    //down button
+    if(gui->qp->pscon.getSSDpad(DOWN)) cairo_set_source_rgb(cr, 1,0,0);
+    else cairo_set_source_rgb(cr, 0,0,0);
+    drawTriangle(cr, dpadCenterX, dpadCenterY + DPADSPACING, 20,2);
+    //right button
+    if(gui->qp->pscon.getSSDpad(RIGHT)) cairo_set_source_rgb(cr, 1,0,0);
+    else cairo_set_source_rgb(cr, 0,0,0);
+    drawTriangle(cr, dpadCenterX+DPADSPACING, dpadCenterY, 20,1);
+    //left button
+    if(gui->qp->pscon.getSSDpad(LEFT)) cairo_set_source_rgb(cr, 1,0,0);
+    else cairo_set_source_rgb(cr, 0,0,0);
+    drawTriangle(cr, dpadCenterX-DPADSPACING, dpadCenterY, 20,3);
 
     cairo_destroy(cr);    
 }
