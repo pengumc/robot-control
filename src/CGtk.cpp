@@ -11,7 +11,7 @@
 #endif
 #define TIMEOUT 200 //timeout in ms
 #define SPEED 0.2
-#define LABEL_FORMAT "%d:  angle %f | pw %d"
+#define LABEL_FORMAT "<b>%d</b>: angle <span foreground=\"blue\">%f</span> | pw <span color=\"red\">%d</span> "//"%d:  angle %f | pw %d"
 #define POSLABEL_FORMAT "X: %f\nY: %f\nZ:%f"
 
 static void close_window(){gtk_main_quit();}
@@ -19,6 +19,7 @@ static gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer 
 static gboolean timeout1(gpointer data);
 static void timeout_disconnected(gpointer data);
 static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
+static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
 static void connect_clicked_cb(GtkButton *button, gpointer data);
 
 class CGtk{
@@ -32,6 +33,8 @@ class CGtk{
         void updatePSControllerData();
     private:
         GtkWidget *window;
+        GtkWidget *vbox_main;        
+        GtkWidget *gamepadDrawing;
         GtkWidget *hbox_main;
         GtkWidget *vbox_left;
         GtkWidget *hbox_button;
@@ -50,6 +53,7 @@ class CGtk{
         friend void timeout_disconnected(gpointer data);
         friend void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
         friend void connect_clicked_cb(GtkButton *button, gpointer data);
+        friend void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
 
 };
 
@@ -60,14 +64,16 @@ CGtk::CGtk(CQPed *Q){
     //build gui elements
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window),"Robot_control");
-    hbox_main = gtk_hbox_new(FALSE,0);
-    vbox_left = gtk_vbox_new(FALSE,0);
-    hbox_button = gtk_hbox_new(FALSE,0);
-    vbox_right = gtk_vbox_new(TRUE,0);
-    vbox_mid = gtk_vbox_new(TRUE,0);
-    gtk_box_pack_start(GTK_BOX(hbox_main), vbox_left,FALSE, TRUE,0);
-    gtk_box_pack_start(GTK_BOX(hbox_main), vbox_mid,TRUE,TRUE,0);
-    gtk_box_pack_start(GTK_BOX(hbox_main), vbox_right,TRUE, TRUE,0);
+    vbox_main = gtk_vbox_new(FALSE,2);
+    hbox_main = gtk_hbox_new(FALSE,2);
+    vbox_left = gtk_vbox_new(FALSE,2);
+    hbox_button = gtk_hbox_new(FALSE,2);
+    vbox_right = gtk_vbox_new(TRUE,2);
+    vbox_mid = gtk_vbox_new(TRUE,2);
+    gtk_box_pack_start(GTK_BOX(vbox_main), hbox_main, FALSE, TRUE,2);
+    gtk_box_pack_start(GTK_BOX(hbox_main), vbox_left,FALSE, TRUE,2);
+    gtk_box_pack_start(GTK_BOX(hbox_main), vbox_mid,TRUE,TRUE,2);
+    gtk_box_pack_start(GTK_BOX(hbox_main), vbox_right,TRUE, TRUE,2);
 
     uint8_t i;
     char text[100];
@@ -75,11 +81,12 @@ CGtk::CGtk(CQPed *Q){
     button_connect = gtk_button_new();
     show_disconnected();
     gtk_widget_set_size_request(button_connect, 32,32);
-    gtk_box_pack_start(GTK_BOX(vbox_left), hbox_button,FALSE,FALSE,0);
-    gtk_box_pack_start(GTK_BOX(hbox_button),button_connect,FALSE,FALSE,0);
+    gtk_box_pack_start(GTK_BOX(vbox_left), hbox_button,FALSE,FALSE,8);
+    gtk_box_pack_start(GTK_BOX(hbox_button),button_connect,FALSE,FALSE,8);
     for(i=0;i<SERVOS;i++){
         sprintf(text, LABEL_FORMAT, i,0.0,0);
-        servo_label[i] = gtk_check_button_new_with_label(text);
+        servo_label[i] = gtk_label_new(NULL); //gtk_check_button_new_with_label(text);
+        gtk_label_set_markup(GTK_LABEL(servo_label[i]), text);
         gtk_box_pack_start(GTK_BOX(vbox_left), servo_label[i],TRUE,TRUE,0);
     }
     //mid
@@ -92,13 +99,20 @@ CGtk::CGtk(CQPed *Q){
         position_label[i] = gtk_label_new(text);
         gtk_box_pack_start(GTK_BOX(vbox_right), position_label[i], TRUE, TRUE, 0);
     }
-    gtk_container_add(GTK_CONTAINER(window), hbox_main);
+    //gamepad drawing
+    gamepadDrawing = gtk_drawing_area_new();
+    gtk_box_pack_start(GTK_BOX(vbox_main), gamepadDrawing, TRUE, TRUE,0);
+    gtk_widget_set_size_request(gamepadDrawing, -1, 150);
+    //add main container to window
+    gtk_container_add(GTK_CONTAINER(window), vbox_main);
     //connect signals
     g_signal_connect(window, "destroy", G_CALLBACK(close_window),NULL);
     g_signal_connect(window, "key_press_event", G_CALLBACK(key_press_callback), (gpointer)this);
     g_signal_connect(button_connect, "clicked", G_CALLBACK(connect_clicked_cb), (gpointer)this);
     connect_timeout();
     g_signal_connect(G_OBJECT(da), "expose_event", G_CALLBACK(paint), (gpointer)this);
+    g_signal_connect(G_OBJECT(gamepadDrawing),
+         "expose_event", G_CALLBACK(paintGP), (gpointer)this);    
     gtk_widget_show_all(window);
     qp = Q;
 }
@@ -123,7 +137,8 @@ void CGtk::updateServoData(){
             qp->getAngle(i),
             qp->getPW(i)
         );
-        gtk_button_set_label(GTK_BUTTON(servo_label[i]),text);
+        //gtk_button_set_label(GTK_BUTTON(servo_label[i]),text);
+        gtk_label_set_markup(GTK_LABEL(servo_label[i]),text);
     }
 }
 
@@ -210,7 +225,49 @@ static void timeout_disconnected(gpointer data){
     g_print("disconnected timeout\n");//placeholder
 }
 
-#define BG_COLOR 0.95
+void drawTriangle(cairo_t *cr, double x, double y, double size, uint8_t turn){
+    double mirror;
+    if(turn % 2){ // 1 and 3
+        mirror = pow(-1.0,turn/2);
+        cairo_move_to(cr, x + mirror * size/2, y);
+        cairo_rel_line_to(cr, -mirror*size, size/2);
+        cairo_rel_line_to(cr, 0, -size);        
+    }else{ //0 and 2
+        mirror =  pow(-1.0, turn/2);
+        cairo_move_to(cr, x, y - mirror *size/2);
+        cairo_rel_line_to(cr, size/2, mirror * size);
+        cairo_rel_line_to(cr, -size,0);
+    }
+    cairo_close_path(cr);
+    cairo_stroke(cr);
+}
+
+#define BG_COLOR 1
+//draw shapes for evey button, vary the color depending on the button state
+static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
+    CGtk* gui = ((CGtk*)data);
+    GtkAllocation alloc;
+    gtk_widget_get_allocation(widget, &alloc);
+    cairo_t *cr;
+    cr = gdk_cairo_create(widget->window);
+    cairo_set_source_rgb(cr,BG_COLOR,BG_COLOR,BG_COLOR);
+    cairo_paint(cr);
+    const double baseX = alloc.width/2;
+    const double baseY = alloc.height/2;
+    //up button
+    cairo_set_source_rgb(cr, 1,0,0);
+    drawTriangle(cr, baseX-50, baseY, 20,0);
+    cairo_set_source_rgb(cr, 0,0,0);
+    drawTriangle(cr, baseX, baseY, 20,1);
+    cairo_set_source_rgb(cr, 0,0,1);
+    drawTriangle(cr, baseX+50, baseY, 20,2);
+    cairo_set_source_rgb(cr, 0,1,0);
+    drawTriangle(cr, baseX+100, baseY, 20,3);
+
+    cairo_destroy(cr);    
+}
+
+
 #define SCALE 9.0
 #define LINEWIDTH 4
 static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
