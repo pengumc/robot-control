@@ -28,6 +28,8 @@ note: some timings are wrong on windows atm, making input slow
 fixes in 0.3:
 -solver had a typo in one of the fomulas.
 -neither of the legs will move if one of them can't.    
-
+0.4
+-added playstation controller class to parse psdata from usbtoi2c
+-wip: visual feedback of controller state
 
 
