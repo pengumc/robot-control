@@ -115,15 +115,16 @@ void CQPed::reset(){
 }
 
 void CQPed::fillPSController(){
-    usb.getData();
-    pscon.setData(
-        usb.PSControllerDataBuffer[1],
-        usb.PSControllerDataBuffer[2],
-        usb.PSControllerDataBuffer[5],
-        usb.PSControllerDataBuffer[6],
-        usb.PSControllerDataBuffer[7],
-        usb.PSControllerDataBuffer[8]
-    );
+    if(usb.getData()){
+        pscon.setData(
+            usb.PSControllerDataBuffer[1],
+            usb.PSControllerDataBuffer[2],
+            usb.PSControllerDataBuffer[5],
+            usb.PSControllerDataBuffer[6],
+            usb.PSControllerDataBuffer[7],
+            usb.PSControllerDataBuffer[8]
+        );
+    }
 }
 
 void CQPed::updatePivots(){

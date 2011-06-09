@@ -48,16 +48,30 @@ class CPSController{
         int8_t getRy();
         int8_t getLx();
         int8_t getLy();
-//   private:
+        void printData();
+   private:
         PSC_data_t dat;
         
 };
 
 CPSController::CPSController(){
+    dat.SS_Dpad = 0xFF;
+    dat.Shoulder_Shapes = 0xFF;
+    dat.Rx = 128;
+    dat.Ry = 128;
+    dat.Lx = 128;
+    dat.Ly = 128;
     dat.Rx_mid = 128;
     dat.Ry_mid = 128;
     dat.Lx_mid = 128;
     dat.Ly_mid = 128;
+}
+
+void CPSController::printData(){
+    printf("playstation controller state:\n");
+    printf("SS_Dpad 0x%X\nSdhoulder_Shapes 0x%x\n", dat.SS_Dpad, dat.Shoulder_Shapes);
+    printf("R: %d | %d\n", getRx(), getRy());
+    printf("L: %d | %d\n", getLx(), getLy());
 }
 
 int8_t CPSController::getRx(){
