@@ -352,6 +352,28 @@ static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     dy = ((double)gui->qp->pscon.getRy())/140*STICKSIZE/2;
     cairo_arc(cr, rightCenterX +dx, leftCenterY + dy,STICKSIZE/10, 0, -2*PI-0.0001);
     cairo_stroke(cr);
+//shoulder buttons
+    //L1
+    if(gui->qp->pscon.getShoulderShapes(L1)) cairo_set_source_rgb(cr, 1,0,0);
+    else cairo_set_source_rgb(cr, 0,0,0);
+    cairo_rectangle(cr, 0, 0, 30, 15);
+    cairo_stroke(cr);
+    //L2
+    if(gui->qp->pscon.getShoulderShapes(L2)) cairo_set_source_rgb(cr, 1,0,0);
+    else cairo_set_source_rgb(cr, 0,0,0);
+    cairo_rectangle(cr, 0, 30, 30, 15);
+    cairo_stroke(cr);
+    //R1
+    if(gui->qp->pscon.getShoulderShapes(R1)) cairo_set_source_rgb(cr, 1,0,0);
+    else cairo_set_source_rgb(cr, 0,0,0);
+    cairo_rectangle(cr, alloc.width-30, 0, 30, 15);
+    cairo_stroke(cr);
+    //R2
+    if(gui->qp->pscon.getShoulderShapes(R2)) cairo_set_source_rgb(cr, 1,0,0);
+    else cairo_set_source_rgb(cr, 0,0,0);
+    cairo_rectangle(cr, alloc.width-30, 30, 30, 15);
+    cairo_stroke(cr);
+                    
 //grid
 //    cairo_move_to(cr, alloc.width/6*1, 0);
 //    cairo_rel_line_to(cr, 0, alloc.height);
