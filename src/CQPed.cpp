@@ -56,7 +56,7 @@ class CQPed{
         double getZ(uint8_t leg);
         void updateSolverParams();
         void updatePivots();
-        void fillPSController();
+        void fillPSController(); 
     private:
         ///the usb helper.
         CUsbDevice usb;
