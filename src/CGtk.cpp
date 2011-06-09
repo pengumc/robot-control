@@ -204,6 +204,7 @@ static void connect_clicked_cb(GtkButton *button, gpointer data){
 
 static gboolean timeout1(gpointer data){
     CGtk* gui = ((CGtk*)data);
+    gui->qp->fillPSController();
     if(gui->qp->getConnected()>1) gui->show_connected();
     else gui->show_disconnected();
     if(gui->running) TRUE;

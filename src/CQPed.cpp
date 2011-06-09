@@ -1,5 +1,6 @@
 #ifndef __CQPED__
 #define __CQPED__
+#include "CPSController.cpp"
 #define Q_LEGS 2
 typedef struct STRUCT_LENGTHS{
     double A[Q_LEGS];
@@ -32,6 +33,8 @@ class CQPed{
         void printPos();
         ///change the x and y position of the center body.
         int moveRelative(double X, double Y, double Z);
+        ///object to store and parse playstation controler data
+        CPSController pscon;
         ///send the servo states to the physical device.
         void sendToDev();
         ///read servo states from physical device.
@@ -53,6 +56,7 @@ class CQPed{
         double getZ(uint8_t leg);
         void updateSolverParams();
         void updatePivots();
+        void fillPSController();
     private:
         ///the usb helper.
         CUsbDevice usb;
@@ -108,6 +112,18 @@ void CQPed::reset(){
     lengths.B[1] = 5;
     lengths.C[1] = 5.5;
     updateSolverParams();
+}
+
+void CQPed::fillPSController(){
+    usb.getData();
+    pscon.setData(
+        usb.PSControllerDataBuffer[1],
+        usb.PSControllerDataBuffer[2],
+        usb.PSControllerDataBuffer[5],
+        usb.PSControllerDataBuffer[6],
+        usb.PSControllerDataBuffer[7],
+        usb.PSControllerDataBuffer[8]
+    );
 }
 
 void CQPed::updatePivots(){
