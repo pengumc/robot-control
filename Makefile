@@ -1,7 +1,6 @@
 #Author: Michiel van der Coelen
-#date: 2011-5-12
+#date: 2011-6-11
 #tabsize: 4
-#make force will recompile everything.
 
 
 NAME = main
@@ -13,11 +12,10 @@ GTKLIBS = $(shell pkg-config --libs gtk+-2.0)
 LIBS =  -Llib -lgslcblas -lgsl $(LINUX) #put either LINUX or WINDOWS here
 LINUX = -lpthread $(USBLIBS) $(GTKLIBS)
 WINDOWS = -lusb 
-#pthread library should be omitted on windows
 COMPILER = g++
 CC = gcc
 OUTPUTNAME = $(NAME) 
-OBJECTS = opendevice.o $(NAME).o
+OBJECTS = opendevice.o CSolver.o CPSController.o CServo.o CUsbDevice.o CGtk.o CQPed.o CAngle.o $(NAME).o
 
 
 .PHONY:all, clean, force

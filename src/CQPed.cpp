@@ -1,88 +1,8 @@
-#ifndef __CQPED__
-#define __CQPED__
-#include "CPSController.cpp"
-#define Q_LEGS 2
-typedef struct STRUCT_LENGTHS{
-    double A[Q_LEGS];
-    double B[Q_LEGS];
-    double C[Q_LEGS];
-} qp_lengths_t;
-
-typedef struct STRUCT_VECTOR{
-    double x;
-    double y;
-    double z;
-} qp_vector_t;
-
-typedef struct STRUCT_PIVOTS{
-    qp_vector_t s0[Q_LEGS];
-    qp_vector_t s1[Q_LEGS];
-    qp_vector_t s2[Q_LEGS];
-} qp_pivots_t;
-
-//quadraped class--------------------------------------------------------------
-///quadraped device, currently in 2 leg mode.
-class CQPed{
-    public:
-        CQPed(){reset();}
-        ///reconnect and reset the entire thing.
-        void reset();
-        ///returns the connection status of the usb helper
-        int8_t getConnected(); 
-        ///prints the x and y positions of all legs.
-        void printPos();
-        ///change the x and y position of the center body.
-        int moveRelative(double X, double Y, double Z);
-        ///object to store and parse playstation controler data
-        CPSController pscon;
-        ///send the servo states to the physical device.
-        void sendToDev();
-        ///read servo states from physical device.
-        void readFromDev();
-        ///read PS controller data
-        void readPSController();
-        ///change the angle of a single servo by a.
-        void changeServo(uint8_t servo, double a);
-        ///array of servos, 3 per leg.
-        CServo2 servoArray[SERVOS];
-        qp_lengths_t lengths;
-        qp_pivots_t pivots;
-        ///print the servo angles from memory.
-        void printAngles();
-        double getAngle(uint8_t servo);
-        uint8_t getPW(uint8_t servo);
-        double getX(uint8_t leg);
-        double getY(uint8_t leg);
-        double getZ(uint8_t leg);
-        void updateSolverParams();
-        void updatePivots();
-        void fillPSController(); 
-        int moveByStick();
-    private:
-        ///the usb helper.
-        CUsbDevice usb;
-        ///x positions per leg
-        double x[Q_LEGS];
-        ///y positions per leg
-        double y[Q_LEGS];
-        ///z positions per leg
-        double z[Q_LEGS];
-        ///rotation of the main body around the zAxis
-        CAngle zAxis;
-        ///width of the main body
-        double width;
-        ///chose the best solution and assign it to the servos, returns 1 on failure
-        int assignAngles(
-            uint8_t s0, uint8_t s1, uint8_t s2, uint8_t leg);
-        ///solver for x,y,z -> a,b,c
-        CSolver solver[Q_LEGS];
-        ///calculate the angles needed for the position specified by x[] and y[]
-        uint8_t calcAngles(uint8_t leg );
-        
-};
+#include "robot-control/CQPed.h"
 
 /** Most default values are hardcoded into this function.
 */
+
 void CQPed::reset(){
     usb.connect();
     char i;
@@ -116,23 +36,21 @@ void CQPed::reset(){
     lengths.C[1] = 5.5;
     updateSolverParams();
 }
-#define Q_CONTROLLER_TRESHOLD 32
-#define Q_STICK_SPEED (0.2/128)
 ///returns 0 if nothing was done, 1 otherwise
 int CQPed::moveByStick(){
     //assume pcscon is filled with valid data
     char trigger = 0;
     //Rx
     int8_t temp = pscon.getRx();
-    if(abs(temp) > Q_CONTROLLER_TRESHOLD){
+    if(abs(temp) > QP_CONTROLLER_TRESHOLD){
         trigger = 1;
-        moveRelative(-((float)temp)*Q_STICK_SPEED, 0, 0);
+        moveRelative(-((float)temp)*QP_STICK_SPEED, 0, 0);
     }
     //Ry
     temp = pscon.getRy();
-    if(abs(temp) > Q_CONTROLLER_TRESHOLD){
+    if(abs(temp) > QP_CONTROLLER_TRESHOLD){
         trigger = 1;
-        moveRelative(0, ((float)temp)*Q_STICK_SPEED, 0);
+        moveRelative(0, ((float)temp)*QP_STICK_SPEED, 0);
     }
     return trigger;    
 }
@@ -153,7 +71,7 @@ void CQPed::fillPSController(){
 void CQPed::updatePivots(){
     uint8_t i;
     double a,b,c;
-    for(i=0;i<Q_LEGS;i++){
+    for(i=0;i<QP_LEGS;i++){
         a = getAngle(3 * i + 0);
         b = getAngle(3 * i + 1);
         c = getAngle(3 * i + 2);
@@ -168,7 +86,7 @@ void CQPed::updatePivots(){
 
 void CQPed::updateSolverParams(){
     uint8_t i;
-    for (i=0;i<Q_LEGS;i++){
+    for (i=0;i<QP_LEGS;i++){
         solver[i].p.A = lengths.A[i];
         solver[i].p.B = lengths.B[i];
         solver[i].p.C = lengths.C[i];
@@ -293,4 +211,4 @@ void CQPed::sendToDev(){
 void CQPed::readFromDev(){
     usb.readServoData(servoArray);
 }
-#endif
+
