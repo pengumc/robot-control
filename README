@@ -37,5 +37,6 @@ changes in 0.4:
 -added visual feedback of controller state
 -added incemental stick control form the right analog stick
 -fixed some issues with assigning angles to the servos
-
+changes in 0.5:
+-development files have been organized
 
