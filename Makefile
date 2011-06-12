@@ -6,7 +6,7 @@
 
 NAME = main
 GTKFLAGS = $(shell pkg-config --cflags gtk+-2.0)
-CFLAGS = -Iinclude -Isrc $(GTKFLAGS)
+CFLAGS = -Iinclude -Isrc -I. $(GTKFLAGS)
 CPPFLAGS = $(CFLAGS) -std=c++0x  
 USBLIBS := $(shell libusb-config --libs)
 GTKLIBS = $(shell pkg-config --libs gtk+-2.0)
