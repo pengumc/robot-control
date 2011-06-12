@@ -1,14 +1,18 @@
-Version 0.3
+Version 0.4
 XY control for 2 connected 3DOF legs with gtk gui
   .___.X.___.
 ./           \.
 |             |
 
 keyboard:
- 'q' : exit
+ 'q' : disconnect timeout routine, resulting in no more controller polling.
  wasd : change main body posistion (up left down right)
  '`' : reset and reconnect usb.
  any key will refresh the actual servo positions stored in the device.
+controller:
+ right analog: same as wasd
+ triangle: set analog mode for controller (red led on the controller)
+
 
 GUI
 some visualization has bee added.
@@ -28,8 +32,10 @@ note: some timings are wrong on windows atm, making input slow
 fixes in 0.3:
 -solver had a typo in one of the fomulas.
 -neither of the legs will move if one of them can't.    
-0.4
+changes in 0.4:
 -added playstation controller class to parse psdata from usbtoi2c
--wip: visual feedback of controller state
+-added visual feedback of controller state
+-added incemental stick control form the right analog stick
+-fixed some issues with assigning angles to the servos
 
 
