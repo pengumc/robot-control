@@ -57,6 +57,7 @@ class CQPed{
         void updateSolverParams();
         void updatePivots();
         void fillPSController(); 
+        int moveByStick();
     private:
         ///the usb helper.
         CUsbDevice usb;
@@ -88,6 +89,7 @@ void CQPed::reset(){
     for (i=0;i<BUFLEN_SERVO_DATA;i++){
         servoArray[i].reset();
     }
+    //servo orientation
     servoArray[2].offset = -(PI/2);
     servoArray[2].setAngle(-PI/2);
     servoArray[2].flipDirection();
@@ -95,6 +97,7 @@ void CQPed::reset(){
     servoArray[4].mirrorZ();
     servoArray[5].offset = -(PI/2);
     servoArray[5].mirrorZ();
+    //start positions
     x[0] = 9.5;
     x[1] = -8;
     y[0] = -5.5;
@@ -112,6 +115,26 @@ void CQPed::reset(){
     lengths.B[1] = 5;
     lengths.C[1] = 5.5;
     updateSolverParams();
+}
+#define Q_CONTROLLER_TRESHOLD 32
+#define Q_STICK_SPEED (0.2/128)
+///returns 0 if nothing was done, 1 otherwise
+int CQPed::moveByStick(){
+    //assume pcscon is filled with valid data
+    char trigger = 0;
+    //Rx
+    int8_t temp = pscon.getRx();
+    if(abs(temp) > Q_CONTROLLER_TRESHOLD){
+        trigger = 1;
+        moveRelative(-((float)temp)*Q_STICK_SPEED, 0, 0);
+    }
+    //Ry
+    temp = pscon.getRy();
+    if(abs(temp) > Q_CONTROLLER_TRESHOLD){
+        trigger = 1;
+        moveRelative(0, ((float)temp)*Q_STICK_SPEED, 0);
+    }
+    return trigger;    
 }
 
 void CQPed::fillPSController(){
@@ -223,8 +246,8 @@ int CQPed::moveRelative(double X, double Y, double Z){
     success += calcAngles(1);
     switch (success) {
     case 0:
-        if( assignAngles(0,1,2,0)) return 1;
-        if( assignAngles(3,4,5,1)) return 1;
+        if( assignAngles(0,1,2,0)) break;
+        if( assignAngles(3,4,5,1)) break;
         return 0;
     } //undo move
     x[0] -= X;
