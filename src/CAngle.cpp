@@ -1,6 +1,5 @@
 #ifndef __ANGLE_H__
 #define __ANGLE_H__
-#include <stdio.h>
 #include <stdlib.h>
 #ifndef PI
     #include <math.h>

@@ -2,7 +2,6 @@
 #define __CSOLVER_CPP__
 #include <stdlib.h>
 #include <stdint.h>
-#include <stdio.h>
 
 #include <math.h>
 #include "../include/gsl/gsl_vector.h"

@@ -9,109 +9,6 @@
 #include "i2c_header.h"
 #define SERVOS 12
 #include "CAngle.cpp"
-//servo class------------------------------------------------------------------
-class CServo{
-    public:
-        CServo();
-        void reset();
-        void reset_NEW();
-        uint8_t maxPulse;
-        uint8_t minPulse;
-        uint8_t midPulse;
-        double direction;
-        double offset;
-        double K;
-        double angle;
-        uint8_t pulsewidth;
-
-        uint8_t isValidAngle(double a);
-        void flipDirection();
-        char setAngle(double a);
-        double pulsewidthToAngle();
-        double pulsewidthToAngle(uint8_t pw);
-        uint8_t angleToPulsewidth();
-        uint8_t angleToPulsewidth(double a);
-        friend class CUsbDevice;
-    private:
-        CAngle phi;
-};
-//for servo 2 and 5: direction = -1, offset = -PI/2
-CServo::CServo(){reset();}
-
-void CServo::reset_NEW(){
-    phi = 0;
-    maxPulse=0;
-}
-/** Default values are hardcoded here.*/
-void CServo::reset(){
-    angle=0;
-    maxPulse = 96;
-    minPulse = 48;
-    midPulse = 72;
-    direction = 1.0;
-    offset = 0;
-    K = 0.034;
-    pulsewidth = angleToPulsewidth();
-}
-
-void CServo::flipDirection(){
-    char pw;
-    if (direction == -1.0){
-        direction=1.0;
-        pw= maxPulse;
-        maxPulse = minPulse;
-        minPulse = pw;
-    }else{
-        direction = -1.0;
-        pw= maxPulse;
-        maxPulse = minPulse;
-        minPulse = pw;
-    }
-}
-
-uint8_t CServo::isValidAngle(double a){
-    if (a > pulsewidthToAngle(minPulse) &&
-        a < pulsewidthToAngle(maxPulse)) return 1;
-    else return 0;
-}
-
-char CServo::setAngle(double a){
-//return 0 on success, 1 if maxed
-    char tempPW;
-//    printf("setAngle in: %f\n",a);
-//    printf("max angle = %f\n", pulsewidthToAngle(maxPulse));
-//    printf("min angle = %f\n", pulsewidthToAngle(minPulse));
-//    printf("pulsewidth a = %d\n", angleToPulsewidth(a));
-    if (a > pulsewidthToAngle(maxPulse)) {
-        pulsewidth = maxPulse;
-        angle = pulsewidthToAngle(maxPulse);
-    }else if (a < pulsewidthToAngle(minPulse)){
-        pulsewidth = minPulse;
-        angle = pulsewidthToAngle(minPulse);
-    }else{
-        pulsewidth = angleToPulsewidth(a);
-        angle = a;
-    }
-       
-}
-
-uint8_t CServo::angleToPulsewidth(){
-    return (((angle-offset) / K) / direction) + midPulse;
-}
-
-uint8_t CServo::angleToPulsewidth(double a){
-    //printf("angleToPulsewidth got %f\n",a);
-    return (((a-offset) / K) / direction) +midPulse;
-}
-
-double CServo::pulsewidthToAngle(){
-    return (pulsewidth - ((minPulse+maxPulse)/2)) * direction * K + offset;
-}
-
-double CServo::pulsewidthToAngle(uint8_t pw){
-    return (pw- midPulse) * direction * K + offset;
-}
-
 
 //usb device--------------------------------------------------------------------
 class CUsbDevice{
@@ -125,11 +22,11 @@ class CUsbDevice{
         void sendServoData(CServo2 *servos);
         void printA();
         void printB();
-        void getData();
+        int getData();
+        char PSControllerDataBuffer[BUFLEN_SERVO_DATA];
     private:
         usb_dev_handle *handle;
         char servoDataBuffer[BUFLEN_SERVO_DATA];
-        char PSControllerDataBuffer[BUFLEN_SERVO_DATA];
         char vendor[USB_CFG_VENDOR_NAME_LEN+1];
         char product[USB_CFG_DEVICE_NAME_LEN+1];
         unsigned char rawVid[2];
@@ -151,10 +48,12 @@ CUsbDevice::CUsbDevice(){
     usb_init();
 }
 
-void CUsbDevice::getData(){
-    if(connected<1) return;
+
+int CUsbDevice::getData(){
+    if(connected<1) return 0;
     char i;
     sendCtrlMsg(CUSTOM_RQ_GET_DATA, USB_ENDPOINT_IN,0,0,PSControllerDataBuffer);
+    return 1;
 //    printf("Right X = %d\n",PSControllerDataBuffer[5]);
 //    printf("Right Y = %d\n",PSControllerDataBuffer[6]);
 //    printf("Left X = %d\n",PSControllerDataBuffer[7]);
