@@ -9,7 +9,7 @@
 #ifndef Q_LEGS
     #define Q_LEGS 4
 #endif
-#define TIMEOUT 200 //timeout in ms
+#define TIMEOUT 50 //timeout in ms
 #define SPEED 0.2
 #define LABEL_FORMAT "<b>%d</b>: angle <span foreground=\"blue\">%f</span> | pw <span color=\"red\">%d</span> "//"%d:  angle %f | pw %d"
 #define POSLABEL_FORMAT "X: %f\nY: %f\nZ:%f"
@@ -223,6 +223,13 @@ static gboolean timeout1(gpointer data){
     if(gui->running == 0) return FALSE;
     gui->qp->fillPSController();
     gui->updateGamePadDrawing();
+    if(gui->qp->moveByStick()){
+        gui->qp->sendToDev();
+        //usleep(10000);//allow device to transmit before next command;
+        //gui->updateServoData();
+        gui->updatePositions();
+        paint(gui->da, NULL, gui);
+    }
     if(gui->qp->getConnected()>1) gui->show_connected();
     else gui->show_disconnected();
     return TRUE;

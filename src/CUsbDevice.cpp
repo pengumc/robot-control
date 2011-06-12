@@ -22,7 +22,7 @@ class CUsbDevice{
         void sendServoData(CServo2 *servos);
         void printA();
         void printB();
-        void getData();
+        int getData();
         char PSControllerDataBuffer[BUFLEN_SERVO_DATA];
     private:
         usb_dev_handle *handle;
@@ -48,10 +48,12 @@ CUsbDevice::CUsbDevice(){
     usb_init();
 }
 
-void CUsbDevice::getData(){
-    if(connected<1) return;
+
+int CUsbDevice::getData(){
+    if(connected<1) return 0;
     char i;
     sendCtrlMsg(CUSTOM_RQ_GET_DATA, USB_ENDPOINT_IN,0,0,PSControllerDataBuffer);
+    return 1;
 //    printf("Right X = %d\n",PSControllerDataBuffer[5]);
 //    printf("Right Y = %d\n",PSControllerDataBuffer[6]);
 //    printf("Left X = %d\n",PSControllerDataBuffer[7]);
