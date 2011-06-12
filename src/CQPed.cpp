@@ -69,6 +69,7 @@ void CQPed::fillPSController(){
 }
 
 void CQPed::updatePivots(){
+//TODO not done
     uint8_t i;
     double a,b,c;
     for(i=0;i<QP_LEGS;i++){

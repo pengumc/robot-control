@@ -64,7 +64,7 @@ class CQPed{
         double getY(uint8_t leg);
         double getZ(uint8_t leg);
         void updateSolverParams();
-        void updatePivots();
+        void updatePivots();//TODO not done
         void fillPSController(); 
         int moveByStick();
     private:

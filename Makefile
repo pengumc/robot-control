@@ -3,35 +3,34 @@
 #tabsize: 4
 
 
-NAME = main
+NAME = robot-control
 GTKFLAGS = $(shell pkg-config --cflags gtk+-2.0)
 CFLAGS = -Iinclude -Isrc -I. $(GTKFLAGS)
 CPPFLAGS = $(CFLAGS) -std=c++0x  
 USBLIBS := $(shell libusb-config --libs)
 GTKLIBS = $(shell pkg-config --libs gtk+-2.0)
-LIBS =  -Llib -lgslcblas -lgsl $(LINUX) #put either LINUX or WINDOWS here
+LIBS =  -Llib/gsl -Llib/robot-control -lgslcblas -lgsl $(LINUX) #put either LINUX or WINDOWS here
 LINUX = -lpthread $(USBLIBS) $(GTKLIBS)
 WINDOWS = -lusb 
 COMPILER = g++
 CC = gcc
 OUTPUTNAME = $(NAME) 
-OBJECTS = opendevice.o CSolver.o CPSController.o CServo.o CUsbDevice.o CGtk.o CQPed.o CAngle.o $(NAME).o
+OBJECTS = opendevice.o CSolver.o CPSController.o CServo.o CUsbDevice.o CGtk.o CQPed.o CAngle.o main.o
 
 
 .PHONY:all, clean, force
 
 all:bin/$(OUTPUTNAME)
-	rm $(OBJECTS)
 force:clean all
 
-bin/$(OUTPUTNAME):$(OBJECTS)
-	$(COMPILER) -o bin/$(OUTPUTNAME) $(OBJECTS) $(LIBS)
+bin/$(OUTPUTNAME):$(addprefix lib/$(NAME)/,$(OBJECTS))
+	$(COMPILER) -o bin/$(OUTPUTNAME) $(addprefix lib/$(NAME)/,$(OBJECTS)) $(LIBS)
 clean:
-	rm $(OBJECTS)
+	rm $(addprefix lib/$(NAME)/,$(OBJECTS))
 	rm bin/$(OUTPUTNAME)
 
-%.o:src/%.cpp
-	$(COMPILER) $(CPPFLAGS) -c $<
+lib/$(NAME)/%.o:src/%.cpp
+	$(COMPILER) $(CPPFLAGS) -c $< -o $@
 
-%.o:src/%.c
-	$(COMPILER) $(CPPFLAGS) -c $<
+lib/$(NAME)/%.o:src/%.c
+	$(COMPILER) $(CPPFLAGS) -c $< -o $@

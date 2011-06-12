@@ -31,7 +31,7 @@ int CUsbDevice::getData(){
 //        printf("}\n");
 }
 
-void CUsbDevice::printA(){
+void CUsbDevice::printA(){ 
     char i;
     printf("buffer A: {");
     for (i=0;i<BUFLEN_SERVO_DATA;i++){

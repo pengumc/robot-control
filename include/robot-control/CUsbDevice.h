@@ -3,10 +3,10 @@
 #define USBCOMMANDLINE //used in i2c_header
 #define USBRETRY 3
 #include <usb.h>
-#include "opendevice.h"
-#include "requests.h"
-#include "usbconfig.h"
-#include "i2c_header.h"
+#include "opendevice.h" //contains usbOpenDevice
+#include "robot-control/requests.h"
+#include "robot-control/usbconfig.h"
+#include "robot-control/i2c_header.h"
 #include "robot-control/CServo.h"
 
 #define SERVOS 12
