@@ -1,63 +1,4 @@
-#ifndef __CGTK_CPP__
-#define __CGTK_CPP__
-#include <stdint.h>
-#include <gtk/gtk.h>
-
-#ifndef SERVOS
-    #define SERVOS 12
-#endif
-#ifndef Q_LEGS
-    #define Q_LEGS 4
-#endif
-#define TIMEOUT 50 //timeout in ms
-#define SPEED 0.2
-#define LABEL_FORMAT "<b>%d</b>: angle <span foreground=\"blue\">%f</span> | pw <span color=\"red\">%d</span> "//"%d:  angle %f | pw %d"
-#define POSLABEL_FORMAT "X: %f\nY: %f\nZ:%f"
-
-static void close_window(){gtk_main_quit();}
-static gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer data);
-static gboolean timeout1(gpointer data);
-static void timeout_disconnected(gpointer data);
-static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
-static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
-static void connect_clicked_cb(GtkButton *button, gpointer data);
-
-class CGtk{
-    public:
-        uint8_t running;
-        CGtk(CQPed *Q);
-        void run();
-        void connect_timeout();
-        void updateServoData();
-        void updatePositions();
-        void updateGamePadDrawing();
-    private:
-        GtkWidget *window;
-        GtkWidget *vbox_main;        
-        GtkWidget *gamepadDrawing;
-        GtkWidget *hbox_main;
-        GtkWidget *vbox_left;
-        GtkWidget *hbox_button;
-        GtkWidget *vbox_mid;
-        GtkWidget *vbox_right;
-        GtkWidget *button_connect;
-        GtkWidget *button_controller;
-	    GtkWidget *servo_label[SERVOS];
-        GtkWidget *position_label[Q_LEGS];
-        GtkWidget *da; ///drawing area
-        CQPed *qp;
-        void show_disconnected();
-        void show_connected();
-        guint timeoutID;
-        friend gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer data);
-        friend gboolean timeout1(gpointer data);
-        friend void timeout_disconnected(gpointer data);
-        friend void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
-        friend void connect_clicked_cb(GtkButton *button, gpointer data);
-        friend void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
-
-};
-
+#include "robot-control/CGtk.h"
 
 CGtk::CGtk(CQPed *Q){
     running=0;
@@ -88,7 +29,7 @@ CGtk::CGtk(CQPed *Q){
     gtk_box_pack_start(GTK_BOX(hbox_button),button_connect,FALSE,FALSE,0);
     gtk_box_pack_start(GTK_BOX(hbox_button),button_controller,FALSE,FALSE,0);
     for(i=0;i<SERVOS;i++){
-        sprintf(text, LABEL_FORMAT, i,0.0,0);
+        sprintf(text, GUI_SERVO_LABEL_FORMAT, i,0.0,0);
         servo_label[i] = gtk_label_new(NULL); //gtk_check_button_new_with_label(text);
         gtk_label_set_markup(GTK_LABEL(servo_label[i]), text);
         gtk_box_pack_start(GTK_BOX(vbox_left), servo_label[i],TRUE,TRUE,0);
@@ -98,7 +39,7 @@ CGtk::CGtk(CQPed *Q){
     gtk_widget_set_size_request(da, 300,-1);
     gtk_box_pack_start(GTK_BOX(vbox_mid),da,TRUE,TRUE,0);
     //right
-    for(i=0;i<Q_LEGS;i++){
+    for(i=0;i<QP_LEGS;i++){
         sprintf(text, "X%d Y%d Z%d",i,i,i);
         position_label[i] = gtk_label_new(text);
         gtk_box_pack_start(GTK_BOX(vbox_right), position_label[i], TRUE, TRUE, 0);
@@ -141,7 +82,7 @@ void CGtk::updateServoData(){
     uint8_t i;
     char text[100];
     for(i=0;i<SERVOS;i++){
-        sprintf(text, LABEL_FORMAT, i,
+        sprintf(text, GUI_SERVO_LABEL_FORMAT, i,
             qp->getAngle(i),
             qp->getPW(i)
         );
@@ -153,7 +94,7 @@ void CGtk::updateServoData(){
 void CGtk::connect_timeout(){
     timeoutID = g_timeout_add_full(
         G_PRIORITY_DEFAULT,
-        TIMEOUT,
+        GUI_TIMEOUT,
         timeout1, 
         (gpointer)this, 
         timeout_disconnected);
@@ -167,8 +108,8 @@ void CGtk::run(){
 void CGtk::updatePositions(){
     uint8_t i;
     char text[50];
-    for(i=0;i<Q_LEGS;i++){
-        sprintf(text, POSLABEL_FORMAT,qp->getX(i),qp->getY(i),qp->getZ(i));
+    for(i=0;i<QP_LEGS;i++){
+        sprintf(text, GUI_POSITION_LABEL_FORMAT,qp->getX(i),qp->getY(i),qp->getZ(i));
         gtk_label_set_text(GTK_LABEL(position_label[i]),text);
     }
 }
@@ -187,19 +128,19 @@ static gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer 
         gui->qp->sendToDev();
         break;
     case 'w':
-        if(gui->qp->moveRelative(0,-SPEED,0)==0)
+        if(gui->qp->moveRelative(0,-GUI_KEYBOARD_SPEED,0)==0)
         gui->qp->sendToDev();
         break;
     case 's':
-        if(gui->qp->moveRelative(0,SPEED,0)==0)
+        if(gui->qp->moveRelative(0,GUI_KEYBOARD_SPEED,0)==0)
         gui->qp->sendToDev();
         break;
     case 'a':
-        if(gui->qp->moveRelative(SPEED,0,0)==0)
+        if(gui->qp->moveRelative(GUI_KEYBOARD_SPEED,0,0)==0)
         gui->qp->sendToDev();
         break;
     case 'd':
-        if(gui->qp->moveRelative(-SPEED,0,0)==0)
+        if(gui->qp->moveRelative(-GUI_KEYBOARD_SPEED,0,0)==0)
         gui->qp->sendToDev();
         break;
     }
@@ -472,5 +413,5 @@ static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     
     cairo_destroy(cr);
 }
-#endif
+
 

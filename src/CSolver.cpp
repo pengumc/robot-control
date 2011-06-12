@@ -1,20 +1,4 @@
-#ifndef __CSOLVER_CPP__
-#define __CSOLVER_CPP__
-#include <stdlib.h>
-#include <stdint.h>
-
-#include <math.h>
-#include "../include/gsl/gsl_vector.h"
-#include "../include/gsl/gsl_multiroots.h"
-
-typedef struct PARAMS{
-    double A;
-    double B;
-    double C;
-    double X;
-    double Y;
-    double Z;
-} solverParams_t;
+#include "robot-control/CSolver.h"
 
 int _trig_f (const gsl_vector *in, void *params, gsl_vector *out){
     const double A = ((struct PARAMS*)params)->A;
@@ -40,26 +24,15 @@ int _trig_f (const gsl_vector *in, void *params, gsl_vector *out){
 
 }
 
-
-class CSolver{
-    public:
-        CSolver();
-        ~CSolver();
-        int solveFor(double x, double y, double z, double betaGuess );
-        int solveForFDF(double x, double y, double z);
-        double alpha;
-        double beta;
-        double gamma;
-        solverParams_t p;
-    //private:<F2>
-        int iter;
-        int status;
-        gsl_vector *x; //initialization vector
-        static const size_t n=3;
-        const gsl_multiroot_fsolver_type *T;
-        gsl_multiroot_fsolver *s;
-        gsl_multiroot_function f;
-};
+int test_res(gsl_multiroot_fsolver *s, solverParams_t *params){
+    gsl_vector *temp = gsl_vector_alloc(3);
+    _trig_f(s->x, params, temp);
+    double resx = gsl_vector_get(temp, 0) ;
+    double resy = gsl_vector_get(temp, 1) ;
+    double resz = gsl_vector_get(temp, 2) ;
+    printf("residual: %f, %f, %f\n", resx, resy, resz);
+    gsl_vector_free(temp);
+}
 
 CSolver::CSolver(){
     T = gsl_multiroot_fsolver_hybrid;
@@ -72,15 +45,6 @@ CSolver::CSolver(){
 CSolver::~CSolver(){
     gsl_multiroot_fsolver_free(s);
     gsl_vector_free(x);
-}
-int test_res(gsl_multiroot_fsolver *s, solverParams_t *params){
-    gsl_vector *temp = gsl_vector_alloc(3);
-    _trig_f(s->x, params, temp);
-    double resx = gsl_vector_get(temp, 0) ;
-    double resy = gsl_vector_get(temp, 1) ;
-    double resz = gsl_vector_get(temp, 2) ;
-    printf("residual: %f, %f, %f\n", resx, resy, resz);
-    gsl_vector_free(temp);
 }
 
 
@@ -121,20 +85,4 @@ int CSolver::solveFor(double X, double Y, double Z, double betaGuess){
 
 
 
-#endif
-#ifndef __MAIN__
-//testing
-int main(int argc, char *argv[]){
-    CSolver solver;
-    double X = atof(argv[1]);
-    double Y = atof(argv[2]);
-    double Z = atof(argv[3]);
-    const double guess= atof(argv[4]);
-    int i;
-    
-    do{
-        X+=0.2;
-        i = solver.solveFor(X,Y,Z,guess);
-    }while (i==0);
-}
-#endif
+
