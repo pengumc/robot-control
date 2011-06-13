@@ -40,18 +40,49 @@ void CQPed::reset(){
 int CQPed::moveByStick(){
     //assume pcscon is filled with valid data
     char trigger = 0;
-    //Rx
-    int8_t temp = pscon.getRx();
-    if(abs(temp) > QP_CONTROLLER_TRESHOLD){
-        trigger = 1;
-        moveRelative(-((float)temp)*QP_STICK_SPEED, 0, 0);
+    int8_t temp;
+    if(pscon.getShoulderShapes(R1)){
+    //move legs together
+        //Rx
+        temp = pscon.getRx();
+        if(abs(temp) > QP_CONTROLLER_TRESHOLD){
+            trigger = 1;
+            moveRelative(-((float)temp)*QP_STICK_SPEED, 0, 0);
+        }
+        //Ry
+        temp = pscon.getRy();
+        if(abs(temp) > QP_CONTROLLER_TRESHOLD){
+            trigger = 1;
+            moveRelative(0, ((float)temp)*QP_STICK_SPEED, 0);
+        }
+    }else{
+    //move legs per stick
+        //Rx
+        temp = pscon.getRx();
+        if(abs(temp) > QP_CONTROLLER_TRESHOLD){
+            trigger = 1;
+            moveRelativeSingleLeg(0, -((float)temp)*QP_STICK_SPEED, 0, 0);
+        }
+        //Ry
+        temp = pscon.getRy();
+        if(abs(temp) > QP_CONTROLLER_TRESHOLD){
+            trigger = 1;
+            moveRelativeSingleLeg(0, 0, ((float)temp)*QP_STICK_SPEED, 0);
+        }
+        //Lx
+        temp = pscon.getLx();
+        if(abs(temp) > QP_CONTROLLER_TRESHOLD){
+            trigger = 1;
+            moveRelativeSingleLeg(1, -((float)temp)*QP_STICK_SPEED, 0, 0);
+        }
+        //Ly
+        temp = pscon.getLy();
+        if(abs(temp) > QP_CONTROLLER_TRESHOLD){
+            trigger = 1;
+            moveRelativeSingleLeg(1, 0, ((float)temp)*QP_STICK_SPEED, 0);
+        }
     }
-    //Ry
-    temp = pscon.getRy();
-    if(abs(temp) > QP_CONTROLLER_TRESHOLD){
-        trigger = 1;
-        moveRelative(0, ((float)temp)*QP_STICK_SPEED, 0);
-    }
+    
     return trigger;    
 }
 
@@ -148,6 +179,20 @@ int CQPed::assignAngles(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t leg){
 
 }
 
+int CQPed::moveRelativeSingleLeg(uint8_t leg, double X, double Y, double Z){
+    x[leg] += X;
+    y[leg] += Y;
+    z[leg] += Z;
+    if(calcAngles(leg)==0){
+        if(assignAngles(leg*3, leg*3+1, leg*3+2, leg)==0) return 0;
+//        else printf("assign failed for leg %d\n", leg);
+    }//else printf("calcAngles failed for leg %d\n",leg);
+    x[leg] -= X;
+    y[leg] -= Y;
+    z[leg] -= Z;
+    return 1;
+}
+
 //returns 0 on success, 1 otherwise
 int CQPed::moveRelative(double X, double Y, double Z){
     x[0] += X;
@@ -156,12 +201,8 @@ int CQPed::moveRelative(double X, double Y, double Z){
     y[1] += Y;
     z[0] += Z;
     z[1] += Z;
-    uint8_t up = 0;
     int success = 0;
-    if (x[0] > -solver[0].p.C ) up =1;
     success = calcAngles(0); 
-    up = 1;
-    if (x[1] > -solver[1].p.C ) up =0;
     success += calcAngles(1);
     switch (success) {
     case 0:
@@ -183,6 +224,7 @@ void CQPed::printPos(){
     printf("x0 = %f\ny0 = %f\nx1 = %f\ny1 = %f\n",x[0],y[0],x[1],y[1]);
 }
 
+//returns 0 on success
 uint8_t CQPed::calcAngles(uint8_t leg){
     double guess =0.01;
     uint8_t temp;

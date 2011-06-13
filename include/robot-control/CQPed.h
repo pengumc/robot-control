@@ -42,6 +42,7 @@ class CQPed{
         void printPos();
         ///change the x and y position of the center body.
         int moveRelative(double X, double Y, double Z);
+        int moveRelativeSingleLeg(uint8_t leg, double X, double Y, double Z);
         ///object to store and parse playstation controler data
         CPSController pscon;
         ///send the servo states to the physical device.
