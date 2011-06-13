@@ -1,5 +1,7 @@
 #include "robot-control/CGtk.h"
 
+static void close_window(){gtk_main_quit();}
+
 CGtk::CGtk(CQPed *Q){
     running=0;
     gtk_init(NULL,NULL);

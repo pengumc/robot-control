@@ -17,6 +17,8 @@ controller:
 GUI
 some visualization has bee added.
 
+NOTES:
+----------------------------------
 WINDOWS (minGW)
 gtk is being a bitch on windows so support is dropped for now.
 
@@ -29,14 +31,22 @@ gsl libraries: http://gnuwin32.sourceforge.net/packages/gsl.htm
 change switch $(LINUX) with $(WINDOWS) in the makefile
 note: some timings are wrong on windows atm, making input slow
 
+32BITS:
+the gsl libraries are 64 bit, so you'll have to build those yourself.
+
+
+changelog:
+------------------------------------------
 fixes in 0.3:
 -solver had a typo in one of the fomulas.
 -neither of the legs will move if one of them can't.    
+
 changes in 0.4:
 -added playstation controller class to parse psdata from usbtoi2c
 -added visual feedback of controller state
 -added incemental stick control form the right analog stick
 -fixed some issues with assigning angles to the servos
+
 changes in 0.5:
 -development files have been organized
 

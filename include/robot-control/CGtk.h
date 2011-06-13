@@ -12,7 +12,7 @@
 #define GUI_POSITION_LABEL_FORMAT "X: %f\nY: %f\nZ:%f"
 
 
-static void close_window(){gtk_main_quit();}
+static void close_window();
 static gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer data);
 static gboolean timeout1(gpointer data);
 static void timeout_disconnected(gpointer data);
