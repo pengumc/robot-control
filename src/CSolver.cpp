@@ -49,7 +49,6 @@ CSolver::~CSolver(){
 
 
 int CSolver::solveFor(double X, double Y, double Z, double betaGuess){
-    gsl_vector_set(x,0,0);
     gsl_vector_set(x,1,betaGuess);
     gsl_vector_set(x,2,0);
     p.X = X;
@@ -65,7 +64,7 @@ int CSolver::solveFor(double X, double Y, double Z, double betaGuess){
         status = gsl_multiroot_test_residual(s->f, 1E-4);
     }while (status == GSL_CONTINUE && iter < 1000);
     if(status != GSL_SUCCESS){
-        //printf("status: %s\niter: %d\n", gsl_strerror(status), iter);
+        printf("status: %s\niter: %d\n", gsl_strerror(status), iter);
         //sanitize(s->x);
         printf("%f, %f, %f, %f, %s\n",
             gsl_vector_get(s->x,0),
@@ -79,6 +78,7 @@ int CSolver::solveFor(double X, double Y, double Z, double betaGuess){
     alpha = gsl_vector_get(s->x, 0);    
     beta= gsl_vector_get(s->x, 1);    
     gamma = gsl_vector_get(s->x, 2);    
+    gsl_vector_set(x,0,0);
 
     return status;
 }

@@ -199,6 +199,7 @@ void drawTriangle(cairo_t *cr, double x, double y, double size, uint8_t turn){
     cairo_stroke(cr);
 }
 
+
 #define BG_COLOR 1
 #define DPADSPACING 35 //also used for shapes
 #define STICKSIZE  60
@@ -341,8 +342,36 @@ static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
 }
 
 
-#define SCALE 9.0
-#define LINEWIDTH 4
+void drawLeg(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY){
+    CGtk* gui = ((CGtk*)data);    
+    cairo_set_source_rgb(cr, 0,0.8, 0);
+    double x = startX;
+    double y = startY;
+    //endpoint -> servo 2
+    cairo_rectangle(cr, x-5, y-5, 10, 10);
+    cairo_move_to(cr, x,y);
+    x +=( gui->qp->legs[leg]->getX(2) -gui->qp->legs[leg]->getX(3) )*GUI_DRAW_SCALE; 
+    y +=( gui->qp->legs[leg]->getY(2) -gui->qp->legs[leg]->getY(3) )*GUI_DRAW_SCALE; 
+    cairo_line_to(cr, x,y);
+    
+    cairo_rectangle(cr, x-5, y-5, 10, 10);
+    cairo_move_to(cr, x,y);
+    x +=( gui->qp->legs[leg]->getX(1) -gui->qp->legs[leg]->getX(2) )*GUI_DRAW_SCALE; 
+    y +=( gui->qp->legs[leg]->getY(1) -gui->qp->legs[leg]->getY(2) )*GUI_DRAW_SCALE; 
+    cairo_line_to(cr, x,y);
+
+    cairo_rectangle(cr, x-5, y-5, 10, 10);
+    cairo_move_to(cr, x,y);
+    x +=( gui->qp->legs[leg]->getX(0) -gui->qp->legs[leg]->getX(1) )*GUI_DRAW_SCALE; 
+    y +=( gui->qp->legs[leg]->getY(0) -gui->qp->legs[leg]->getY(1) )*GUI_DRAW_SCALE; 
+    cairo_line_to(cr, x,y);
+    cairo_rectangle(cr, x-5, y-5, 10, 10);
+    
+    cairo_stroke(cr);
+}
+
+
+
 static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     CGtk* gui = ((CGtk*)data);
     GtkAllocation alloc;
@@ -350,7 +379,7 @@ static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     //g_print("paint, size = %i x %i\n", alloc.width, alloc.height);
     cairo_t *cr;
     cr = gdk_cairo_create(widget->window);
-    cairo_set_line_width(cr,5);
+    cairo_set_line_width(cr,GUI_LINEWIDTH);
     double A, B, C,a,b, c;
     //clear area
     cairo_set_source_rgb(cr,BG_COLOR,BG_COLOR,BG_COLOR);
@@ -370,24 +399,32 @@ static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     cairo_move_to(cr, alloc.width,y);
     cairo_line_to(cr, 0, y);
     cairo_stroke(cr);
+    //draw other leg-class
+    drawLeg(cr, data, 0, x,y);
+    x -= GUI_DRAW_SCALE * (gui->qp->getX(0) - gui->qp->getX(1));
+    y -= GUI_DRAW_SCALE * (gui->qp->getY(0) - gui->qp->getY(1));
+    drawLeg(cr, data, 1, x,y);
+    cairo_destroy(cr);
+    return;
+    
      //line to servo[1]
     cairo_set_source_rgb(cr, 1,0,0);
     cairo_move_to(cr, x,y);
-    x -= (cos(c + b) * C) * SCALE;
-    y += (sin(c + b) * C) * SCALE;
+    x -= (cos(c + b) * C) * GUI_DRAW_SCALE;
+    y += (sin(c + b) * C) * GUI_DRAW_SCALE;
     cairo_line_to(cr, x, y);
     cairo_stroke(cr);
     //line to servo[0]
     cairo_set_source_rgb(cr, 0,0,1);
     cairo_move_to(cr, x,y);
-    x -= (cos(b)*B)*SCALE;
-    y += (sin(b) * B)*SCALE;
+    x -= (cos(b)*B)*GUI_DRAW_SCALE;
+    y += (sin(b) * B)*GUI_DRAW_SCALE;
     cairo_line_to(cr, x, y);
     cairo_stroke(cr);
     //line to servo[4]
     cairo_set_source_rgb(cr, 1,0.9,0);
     cairo_move_to(cr, x,y);
-    x -= (12)*SCALE; //distance between servo[0] and 3
+    x -= (12)*GUI_DRAW_SCALE; //distance between servo[0] and 3
     y += 0;
     cairo_line_to(cr, x, y);
     cairo_stroke(cr);
@@ -400,15 +437,15 @@ static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     c = gui->qp->getAngle(5);
     //line to servo[5]
     cairo_move_to(cr, x,y);
-    x += (cos(b) * B )*SCALE;
-    y -= (sin(b) * B )* SCALE;
+    x += (cos(b) * B )*GUI_DRAW_SCALE;
+    y -= (sin(b) * B )* GUI_DRAW_SCALE;
     cairo_set_source_rgb(cr, 0,0,1);
     cairo_line_to(cr, x, y);
     cairo_stroke(cr);
     //line to endpoint
     cairo_move_to(cr, x,y);
-    x += SCALE * C * cos(b-c);
-    y -= SCALE * C * sin(b-c);
+    x += GUI_DRAW_SCALE * C * cos(b-c);
+    y -= GUI_DRAW_SCALE * C * sin(b-c);
     cairo_set_source_rgb(cr, 1,0,0);
     cairo_line_to(cr, x, y);
     cairo_stroke(cr);

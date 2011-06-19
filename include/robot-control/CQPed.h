@@ -4,11 +4,14 @@
 #include "robot-control/CUsbDevice.h"
 #include "robot-control/CSolver.h"
 #include "robot-control/Defaults.h"
-
-#define QP_SERVOS 12
+#include "robot-control/CServo.h"
+#include "robot-control/CLeg.h"
+#include "robot-control/rotation.h"
+#define QP_SERVOS 12 //6 unused, TODO should be changed to QP_LEGS*LEG_DOF
 #define QP_LEGS 2
 #define QP_CONTROLLER_TRESHOLD 32
 #define QP_STICK_SPEED (0.2/128)
+
 
 
 typedef struct STRUCT_LENGTHS{
@@ -56,7 +59,6 @@ class CQPed{
         ///array of servos, 3 per leg.
         CServo2 servoArray[SERVOS];
         qp_lengths_t lengths;
-        qp_pivots_t pivots;
         ///print the servo angles from memory.
         void printAngles();
         double getAngle(uint8_t servo);
@@ -68,6 +70,8 @@ class CQPed{
         void updatePivots();//TODO not done
         void fillPSController(); 
         int moveByStick();
+        CLeg *legs[QP_LEGS];
+
     private:
         ///the usb helper.
         CUsbDevice usb;

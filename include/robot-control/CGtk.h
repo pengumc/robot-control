@@ -11,6 +11,8 @@
 #define GUI_SERVO_LABEL_FORMAT "<b>%d</b>: angle <span foreground=\"blue\">%f</span> | pw <span color=\"red\">%d</span> "
 #define GUI_POSITION_LABEL_FORMAT "X: %f\nY: %f\nZ:%f"
 
+#define GUI_DRAW_SCALE 9.0
+#define GUI_LINEWIDTH 4
 
 static void close_window();
 static gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer data);
@@ -19,6 +21,7 @@ static void timeout_disconnected(gpointer data);
 static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
 static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
 static void connect_clicked_cb(GtkButton *button, gpointer data);
+void drawLeg(cairo_t *cr, gpointer data, uint8_t leg, double  startX,double startY);
 
 class CGtk{
     public:
@@ -53,6 +56,6 @@ class CGtk{
         friend void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
         friend void connect_clicked_cb(GtkButton *button, gpointer data);
         friend void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
-
+        friend void drawLeg(cairo_t *cr, gpointer data, uint8_t leg, double  startX,double startY);
 };
 #endif

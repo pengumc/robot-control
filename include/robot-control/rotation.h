@@ -18,13 +18,21 @@ typedef double rot_vector_t;
 rot_vector_t *rot_vector_alloc();
 ///set vector value
 void rot_vector_set(rot_vector_t *v, uint8_t n, rot_vector_t a);
+void rot_vector_change(rot_vector_t *v, uint8_t n, rot_vector_t a);
+///copy
+void rot_vector_copy(rot_vector_t *source, rot_vector_t *target);
+///get value
+rot_vector_t rot_vector_get(rot_vector_t *v, uint8_t n);
 ///print vector
 void rot_vector_print(rot_vector_t *v);
 ///return vector length in xz plane;
 double rot_vector_get_length_xz(rot_vector_t *v);
 ///return vector length in xz plane;
 double rot_vector_get_length_yz(rot_vector_t *v);
-
+///return vector length
+double rot_vector_get_length(rot_vector_t *v);
+///add vectors v1 = v1 + v2
+void rot_vector_add(rot_vector_t *v1, rot_vector_t *v2);
 
 ///allocate matrix
 rot_matrix_t *rot_matrix_alloc();

@@ -1,34 +1,62 @@
 #include "robot-control/rotation.h"
 
+void rot_free(void *x){
+    free(x);
+}
+
+
 ///alocate vector
 rot_vector_t *rot_vector_alloc(){
     return (rot_vector_t*) calloc(ROT_MATRIX_DIMENSION, sizeof(rot_vector_t));
-}
-
-//allocate matrix
-rot_matrix_t *rot_matrix_alloc(){
-    return (rot_matrix_t*)calloc(ROT_MATRIX_SIZE, sizeof(rot_matrix_t));
 }
 
 //set vector entry
 void rot_vector_set(rot_vector_t *v, uint8_t n, rot_vector_t a){
     v[n] = a;
 }
- 
+///change
+void rot_vector_change(rot_vector_t *v, uint8_t n, rot_vector_t a){
+    v[n]+=a;
+}
+
+///copy
+void rot_vector_copy(rot_vector_t *source, rot_vector_t *target){
+    target[0] = source[0];
+    target[1] = source[1];
+    target[2] = source[2];
+}
+
+///get vector entry
+rot_vector_t rot_vector_get(rot_vector_t *v, uint8_t n){
+    return v[n];
+}
+
+///get lengths? unsused
 double rot_vector_get_length_yz(rot_vector_t *v){
     return sqrt(pow(v[1],2) + pow(v[2],2));
 }
 double rot_vector_get_length_xz(rot_vector_t *v){
     return sqrt(pow(v[0],2) + pow(v[2],2));
 }
+double rot_vector_get_length(rot_vector_t *v){
+    return sqrt(pow(v[0],2) + pow(v[2],2)+ pow(v[1],2));
+}
 
 ///print vector
 void rot_vector_print(rot_vector_t *v){
     printf("printing vector...\n%f, %f, %f\n\n", v[0], v[1], v[2]);
 }
-    
-void rot_free(void *x){
-    free(x);
+
+void rot_vector_add(rot_vector_t *v1, rot_vector_t *v2){
+    v1[0] += v2[0];
+    v1[1] += v2[1];
+    v1[2] += v2[2];
+}
+
+
+//allocate matrix
+rot_matrix_t *rot_matrix_alloc(){
+    return (rot_matrix_t*)calloc(ROT_MATRIX_SIZE, sizeof(rot_matrix_t));
 }
 
 //returns 1 on error

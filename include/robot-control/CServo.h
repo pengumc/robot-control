@@ -12,7 +12,7 @@ class CServo2{
         void reset();
         CAngle offset;
         double pulsewidthToAngle(); 
-        double pulsewidthToAngle(uint8_t s); 
+        double pulsewidthToAngle(int8_t s); 
         uint8_t angleToPulsewidth();
         uint8_t angleToPulsewidth(double s);
         ///returns 1 if angle is valid
@@ -24,6 +24,7 @@ class CServo2{
         uint8_t getPW();
         void setPW(uint8_t p);
         void flipDirection();
+        void printDetails();
     private:
         double K;
         uint8_t midPulse;
@@ -31,7 +32,7 @@ class CServo2{
         uint8_t maxPulse;
         double direction;
         CAngle angle;
-        uint8_t pw;
+        int8_t pw;
 };
 #endif
 

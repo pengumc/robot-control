@@ -26,7 +26,7 @@ class CSolver{
         double beta;
         double gamma;
         solverParams_t p;
-    //private:<F2>
+//    private:
         int iter;
         int status;
         gsl_vector *x; //initialization vector

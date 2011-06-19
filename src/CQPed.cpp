@@ -10,13 +10,20 @@ void CQPed::reset(){
         servoArray[i].reset();
     }
     //servo orientation
+
     servoArray[2].offset = -(PI/2);
     servoArray[2].setAngle(-PI/2);
     servoArray[2].flipDirection();
     servoArray[3].mirrorZ();
-    servoArray[4].mirrorZ();
+//    servoArray[4].mirrorZ();
+    servoArray[4].flipDirection();
     servoArray[5].offset = -(PI/2);
-    servoArray[5].mirrorZ();
+//    servoArray[5].mirrorZ();
+
+    for(i=0;i<QP_SERVOS/2;i++)  {
+        printf("servo %d:\n",i);
+        servoArray[i].printDetails();
+    }
     //start positions
     x[0] = 9.5;
     x[1] = -8;
@@ -35,6 +42,14 @@ void CQPed::reset(){
     lengths.B[1] = 5;
     lengths.C[1] = 5.5;
     updateSolverParams();
+    rot_vector_t *v = rot_vector_alloc();
+    //new legs
+    v[0] = 3;
+    legs[0] = new CLeg(&servoArray[0], &solver[0].p, v);
+    v[0] = -3;
+    legs[1] = new CLeg(&servoArray[3], &solver[1].p, v);
+    rot_free(v);
+    
 }
 ///returns 0 if nothing was done, 1 otherwise
 int CQPed::moveByStick(){
@@ -96,23 +111,6 @@ void CQPed::fillPSController(){
             usb.PSControllerDataBuffer[7],
             usb.PSControllerDataBuffer[8]
         );
-    }
-}
-
-void CQPed::updatePivots(){
-//TODO not done
-    uint8_t i;
-    double a,b,c;
-    for(i=0;i<QP_LEGS;i++){
-        a = getAngle(3 * i + 0);
-        b = getAngle(3 * i + 1);
-        c = getAngle(3 * i + 2);
-        pivots.s0[i].x = 3;
-        pivots.s1[i].x = lengths.A[i];
-        pivots.s2[i].x = lengths.B[i] * cos(b);
-        pivots.s0[i].y =0 ;
-        pivots.s1[i].y = 0;
-        pivots.s2[i].y = 0;
     }
 }
 
@@ -201,13 +199,35 @@ int CQPed::moveRelative(double X, double Y, double Z){
     y[1] += Y;
     z[0] += Z;
     z[1] += Z;
+    
+    rot_vector_t *v = rot_vector_alloc();
+    
+    v[0] = x[0];
+    v[1] = y[0];
+    v[2] = z[0];
+    legs[0]->moveEndPointTo(v);
+    
+    v[0] = x[1];
+    v[1] = y[1];
+    v[2] = z[1];
+    printf("input leg 1: ");
+    rot_vector_print(v);
+    legs[1]->moveEndPointTo(v);
+    rot_vector_print(legs[1]->resultVector);
+    
+    rot_free(v);
+    legs[0]->updatePos();
+    legs[1]->updatePos();
+    
+    
     int success = 0;
     success = calcAngles(0); 
     success += calcAngles(1);
     switch (success) {
     case 0:
-        if( assignAngles(0,1,2,0)) break;
-        if( assignAngles(3,4,5,1)) break;
+//        if( assignAngles(0,1,2,0)) break;
+
+//        if( assignAngles(3,4,5,1)) break;
         return 0;
     } //undo move
     x[0] -= X;
