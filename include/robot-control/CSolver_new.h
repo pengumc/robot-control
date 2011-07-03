@@ -7,9 +7,8 @@
 #include "gsl/gsl_vector.h"
 #include "gsl/gsl_multiroots.h"
 #include "robot-control/rotation.h"
-#include "robot-control/CSolver.h"
 
-typedef struct PARAMS2{
+typedef struct PARAMS{
     double A;
     double B;
     double C;
@@ -28,7 +27,7 @@ class CSolver2{
         void printParams();
     protected:
         int solveFor();
-        solverParams_t p;
+        solverParams2_t p;
     private:
         gsl_vector *x; //initialization vector
         static const size_t n=2;
