@@ -42,8 +42,8 @@ uint8_t CServo2::angleToPulsewidth(){
 
 
 uint8_t CServo2::angleToPulsewidth(double s){
-    s = angle.anglize(s-offset.get());
-    return (((s) / K) / direction) + midPulse;
+    double a = angle.anglize(s-offset.get());
+    return (((a) / K) / direction) + midPulse;
 }
 
 double CServo2::pulsewidthToAngle(){
@@ -51,8 +51,8 @@ double CServo2::pulsewidthToAngle(){
     
 }
 
-double CServo2::pulsewidthToAngle(uint8_t s){
-    return ((s - midPulse) * direction * K + offset.get());
+double CServo2::pulsewidthToAngle(int8_t s){
+    return (s - (midPulse)) * direction * K + offset.get();
 
 }
 
@@ -85,6 +85,13 @@ void CServo2::changeAngle(double s){
         angle = s;
         pw = angleToPulsewidth();
    }
+}
+
+void CServo2::printDetails(){
+    printf("  valid angles: %.4g to %.4g\n", pulsewidthToAngle(minPulse), pulsewidthToAngle(maxPulse));
+    printf("  valid PW: %d to %d\n",minPulse, maxPulse);
+    printf("  offset : %.4g\n", offset.get());
+    printf("  currently at: % .3g | %d\n", angle, pw);
 }
 
 
