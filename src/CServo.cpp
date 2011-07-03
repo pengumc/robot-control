@@ -91,6 +91,7 @@ void CServo2::printDetails(){
     printf("  valid angles: %.4g to %.4g\n", pulsewidthToAngle(minPulse), pulsewidthToAngle(maxPulse));
     printf("  valid PW: %d to %d\n",minPulse, maxPulse);
     printf("  offset : %.4g\n", offset.get());
+    printf("  currently at: % .3g | %d\n", angle, pw);
 }
 
 

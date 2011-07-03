@@ -52,7 +52,7 @@ double CSolver2::getAlphaFromZ(){
 
     //fix quadrant
     if (X < 0) {
-        printf("X smaller than 0\n");
+//        printf("X smaller than 0\n");
         if(Z < 0) alpha = -M_PI - alpha;
         else alpha = M_PI - alpha;
     }
@@ -69,8 +69,8 @@ int CSolver2::solveFor(){
     gsl_vector_set(x, 0, beta);
     //calculate alpha, and set new X
     rot_vector_set(resultVector, 0, getAlphaFromZ());
-    printParams();
-    printf("beta guess: %.4g\n", gsl_vector_get(x,0));
+//    printParams();
+//    printf("beta guess: %.4g\n", gsl_vector_get(x,0));
     gsl_vector_set(x, 1,0);
     f = {&_trig_f2, n, &p};
     gsl_multiroot_fsolver_set(s, &f, x);
@@ -82,14 +82,14 @@ int CSolver2::solveFor(){
         if (status) break;
         status = gsl_multiroot_test_residual(s->f, 1E-4);
     }while (status == GSL_CONTINUE && iter < 1000);
-//    if(status != GSL_SUCCESS){
+    if(status != GSL_SUCCESS){
         printf("status: %s\niter: %d\n", gsl_strerror(status), iter);
         printf("%.4g, %.4g, %s\n",
             gsl_vector_get(s->x,0),
             gsl_vector_get(s->x,1),
             gsl_strerror(status)
         );
-//    }
+    }
     rot_vector_set(resultVector, 1, gsl_vector_get(s->x, 0));
     rot_vector_set(resultVector, 2, gsl_vector_get(s->x, 1));
 

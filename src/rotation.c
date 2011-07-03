@@ -14,6 +14,13 @@ rot_vector_t *rot_vector_alloc(){
 void rot_vector_set(rot_vector_t *v, uint8_t n, rot_vector_t a){
     v[n] = a;
 }
+
+void rot_vector_setAll(rot_vector_t *v, rot_vector_t x, rot_vector_t y, rot_vector_t z){
+    rot_vector_set(v, 0, x);
+    rot_vector_set(v, 1, y);    
+    rot_vector_set(v, 2, z);    
+}
+
 ///change
 void rot_vector_change(rot_vector_t *v, uint8_t n, rot_vector_t a){
     v[n]+=a;
@@ -52,7 +59,11 @@ void rot_vector_add(rot_vector_t *v1, rot_vector_t *v2){
     v1[1] += v2[1];
     v1[2] += v2[2];
 }
-
+void rot_vector_minus(rot_vector_t *v1, rot_vector_t *v2){
+    v1[0] -= v2[0];
+    v1[1] -= v2[1];
+    v1[2] -= v2[2];
+}
 
 //allocate matrix
 rot_matrix_t *rot_matrix_alloc(){

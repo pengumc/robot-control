@@ -1,7 +1,8 @@
 #include "robot-control/CLeg.h"
 
 ///constructor
-CLeg::CLeg(CServo2 *servoSubSet, solverParams_t *lengths, rot_vector_t *COBOffset){
+CLeg::CLeg(CServo2 *servoSubSet, solverParams2_t *lengths, rot_vector_t *COBOffset){
+    readyFlag = LEG_NOT_READY;
     servos = servoSubSet;
     //store params
     p.A = lengths->A;
@@ -14,7 +15,11 @@ CLeg::CLeg(CServo2 *servoSubSet, solverParams_t *lengths, rot_vector_t *COBOffse
     ///set offset
     rot_vector_set(servoPos[0], 0, COBOffset[0]);
     rot_vector_set(servoPos[0], 1, COBOffset[1]);    
-    rot_vector_set(servoPos[0], 2, COBOffset[2]);    
+    rot_vector_set(servoPos[0], 2, COBOffset[2]);
+    updatePos(); 
+    printPositions();
+
+    
 }
 
 //decontructor
@@ -24,32 +29,56 @@ CLeg::~CLeg(){
     rot_free(endPoint);
 }
 
+//actually assign the calculated angles
+void CLeg::commit(){
+    if(readyFlag){
+        assignAngles();
+        readyFlag = LEG_NOT_READY;
+    }
+}
+
 //returns 0 on success, nonsense otherwise
 int CLeg::moveEndPointTo(rot_vector_t *v){
+    return calcAndTest(v);    
+//    if(calcAndTest(v) == 0){
+//        assignAngles();
+//        return 0;
+//    }
+//        else return -1;
+}
+
+///just calc and test the angles, return 0 on succes
+int CLeg::calcAndTest(rot_vector_t *v){
     p.X = rot_vector_get(v, 0);
     p.Y = rot_vector_get(v, 1);
     p.Z = rot_vector_get(v, 2);
     if (solveFor() ==0){    //solve and store in resultVector
         if (testAngles()==0){       //test angles from resultVector
-            assignAngles();
             return 0;
         }
     }
-    printf("resultVector: ");
     return -1;
+}
 
+int CLeg::relativeMoveEndPoint(rot_vector_t *v){
+    rot_vector_add(v, endPoint);
+    rot_vector_minus(v, servoPos[0]);
+    return moveEndPointTo(v);
 }
 
 int CLeg::testAngles(){
     int error = -LEG_DOF;
     char i;
     for(i=0;i<LEG_DOF;i++) error += servos[i].isValid(rot_vector_get(resultVector, i));
+    if (error == 0) readyFlag = LEG_READY;
+    else readyFlag = LEG_NOT_READY;
     return error;
 }
 
 void CLeg::assignAngles(){
     char i;
     for(i=0;i<LEG_DOF;i++) servos[i].setAngle(rot_vector_get(resultVector, i));
+    updatePos();
 }
 
 
@@ -92,7 +121,7 @@ void CLeg::printPositions(){
 
 }
 
-///update positions, endpoint
+///update positions, endpoint. from servo angles
 void CLeg::updatePos(){
     rot_vector_t *x = rot_vector_alloc();
     rot_matrix_t *M = rot_matrix_alloc();
@@ -106,14 +135,14 @@ void CLeg::updatePos(){
     rot_vector_add(servoPos[1], servoPos[0]);
 
     //servo 1 -> 2 (z-axis)
-    angles[2] += -servos[1].getAngle();
+    angles[2] += servos[1].getAngle();
     rot_matrix_build_from_angles(M, angles);
     x[0] = p.B;
     rot_matrix_dot_vector(M, x, servoPos[2]);
     rot_vector_add(servoPos[2], servoPos[1]);
 
     //servo 2 -> endpoint (z-axis)
-    angles[2] += -servos[2].getAngle(); 
+    angles[2] += servos[2].getAngle(); 
     rot_matrix_build_from_angles(M, angles);
     x[0] = p.C;
     rot_matrix_dot_vector(M, x, endPoint);

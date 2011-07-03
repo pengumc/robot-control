@@ -2,8 +2,8 @@
 
 static void close_window(){gtk_main_quit();}
 
-CGtk::CGtk(CQPed *Q){
-    running=0;
+CGtk::CGtk(CQPed *Q){ 
+    running=0; 
     gtk_init(NULL,NULL);
     //build gui elements
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -11,8 +11,10 @@ CGtk::CGtk(CQPed *Q){
     vbox_main = gtk_vbox_new(FALSE,2);
     hbox_main = gtk_hbox_new(FALSE,2);
     vbox_left = gtk_vbox_new(FALSE,2);
+    gtk_widget_set_size_request(vbox_left, 200, -1);
     hbox_button = gtk_hbox_new(FALSE,2);
     vbox_right = gtk_vbox_new(TRUE,2);
+    gtk_widget_set_size_request(vbox_right, 100, -1);
     vbox_mid = gtk_vbox_new(TRUE,2);
     gtk_box_pack_start(GTK_BOX(vbox_main), hbox_main, FALSE, TRUE,2);
     gtk_box_pack_start(GTK_BOX(hbox_main), vbox_left,FALSE, TRUE,2);
@@ -116,7 +118,7 @@ void CGtk::updatePositions(){
     }
 }
 
-
+ 
 
 static gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer data){
     guint key = ((GdkEventKey*)event)->keyval;
@@ -130,19 +132,19 @@ static gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer 
         gui->qp->sendToDev();
         break;
     case 'w':
-        if(gui->qp->moveRelative(0,-GUI_KEYBOARD_SPEED,0)==0)
+        if(gui->qp->changeAllLegs(0,-GUI_KEYBOARD_SPEED,0)==0)
         gui->qp->sendToDev();
         break;
     case 's':
-        if(gui->qp->moveRelative(0,GUI_KEYBOARD_SPEED,0)==0)
+        if(gui->qp->changeAllLegs(0,GUI_KEYBOARD_SPEED,0)==0)
         gui->qp->sendToDev();
         break;
     case 'a':
-        if(gui->qp->moveRelative(GUI_KEYBOARD_SPEED,0,0)==0)
+        if(gui->qp->changeAllLegs(GUI_KEYBOARD_SPEED,0,0)==0)
         gui->qp->sendToDev();
         break;
     case 'd':
-        if(gui->qp->moveRelative(-GUI_KEYBOARD_SPEED,0,0)==0)
+        if(gui->qp->changeAllLegs(-GUI_KEYBOARD_SPEED,0,0)==0)
         gui->qp->sendToDev();
         break;
     }
@@ -351,19 +353,19 @@ void drawLeg(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double sta
     cairo_rectangle(cr, x-5, y-5, 10, 10);
     cairo_move_to(cr, x,y);
     x +=( gui->qp->legs[leg]->getX(2) -gui->qp->legs[leg]->getX(3) )*GUI_DRAW_SCALE; 
-    y +=( gui->qp->legs[leg]->getY(2) -gui->qp->legs[leg]->getY(3) )*GUI_DRAW_SCALE; 
+    y -=( gui->qp->legs[leg]->getY(2) -gui->qp->legs[leg]->getY(3) )*GUI_DRAW_SCALE; 
     cairo_line_to(cr, x,y);
     
     cairo_rectangle(cr, x-5, y-5, 10, 10);
     cairo_move_to(cr, x,y);
     x +=( gui->qp->legs[leg]->getX(1) -gui->qp->legs[leg]->getX(2) )*GUI_DRAW_SCALE; 
-    y +=( gui->qp->legs[leg]->getY(1) -gui->qp->legs[leg]->getY(2) )*GUI_DRAW_SCALE; 
+    y -=( gui->qp->legs[leg]->getY(1) -gui->qp->legs[leg]->getY(2) )*GUI_DRAW_SCALE; 
     cairo_line_to(cr, x,y);
 
     cairo_rectangle(cr, x-5, y-5, 10, 10);
     cairo_move_to(cr, x,y);
     x +=( gui->qp->legs[leg]->getX(0) -gui->qp->legs[leg]->getX(1) )*GUI_DRAW_SCALE; 
-    y +=( gui->qp->legs[leg]->getY(0) -gui->qp->legs[leg]->getY(1) )*GUI_DRAW_SCALE; 
+    y -=( gui->qp->legs[leg]->getY(0) -gui->qp->legs[leg]->getY(1) )*GUI_DRAW_SCALE; 
     cairo_line_to(cr, x,y);
     cairo_rectangle(cr, x-5, y-5, 10, 10);
     
@@ -376,81 +378,30 @@ static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     CGtk* gui = ((CGtk*)data);
     GtkAllocation alloc;
     gtk_widget_get_allocation(widget, &alloc);
-    //g_print("paint, size = %i x %i\n", alloc.width, alloc.height);
     cairo_t *cr;
     cr = gdk_cairo_create(widget->window);
     cairo_set_line_width(cr,GUI_LINEWIDTH);
-    double A, B, C,a,b, c;
     //clear area
     cairo_set_source_rgb(cr,BG_COLOR,BG_COLOR,BG_COLOR);
     cairo_paint(cr);
     double x= alloc.width/2; 
     double y= alloc.height/2;
-    A = gui->qp->lengths.A[0];
-    B = gui->qp->lengths.B[0];
-    C = gui->qp->lengths.C[0];
-    a = gui->qp->getAngle(0);
-    b = gui->qp->getAngle(1);
-    c = gui->qp->getAngle(2);
-    cairo_set_source_rgb(cr, 0,0,0);
     //move to leg endpoint, and draw base line
     x += 100;
     y += 50;
+    //base line
+    cairo_set_source_rgb(cr, 0,0,0);
     cairo_move_to(cr, alloc.width,y);
     cairo_line_to(cr, 0, y);
     cairo_stroke(cr);
-    //draw other leg-class
+    //leg 0
     drawLeg(cr, data, 0, x,y);
+    //leg 1
     x -= GUI_DRAW_SCALE * (gui->qp->getX(0) - gui->qp->getX(1));
     y -= GUI_DRAW_SCALE * (gui->qp->getY(0) - gui->qp->getY(1));
     drawLeg(cr, data, 1, x,y);
     cairo_destroy(cr);
     return;
-    
-     //line to servo[1]
-    cairo_set_source_rgb(cr, 1,0,0);
-    cairo_move_to(cr, x,y);
-    x -= (cos(c + b) * C) * GUI_DRAW_SCALE;
-    y += (sin(c + b) * C) * GUI_DRAW_SCALE;
-    cairo_line_to(cr, x, y);
-    cairo_stroke(cr);
-    //line to servo[0]
-    cairo_set_source_rgb(cr, 0,0,1);
-    cairo_move_to(cr, x,y);
-    x -= (cos(b)*B)*GUI_DRAW_SCALE;
-    y += (sin(b) * B)*GUI_DRAW_SCALE;
-    cairo_line_to(cr, x, y);
-    cairo_stroke(cr);
-    //line to servo[4]
-    cairo_set_source_rgb(cr, 1,0.9,0);
-    cairo_move_to(cr, x,y);
-    x -= (12)*GUI_DRAW_SCALE; //distance between servo[0] and 3
-    y += 0;
-    cairo_line_to(cr, x, y);
-    cairo_stroke(cr);
-    //load new values
-    A = gui->qp->lengths.A[1];
-    B = gui->qp->lengths.B[1];
-    C = gui->qp->lengths.C[1];
-    a = gui->qp->getAngle(3);
-    b = gui->qp->getAngle(4);
-    c = gui->qp->getAngle(5);
-    //line to servo[5]
-    cairo_move_to(cr, x,y);
-    x += (cos(b) * B )*GUI_DRAW_SCALE;
-    y -= (sin(b) * B )* GUI_DRAW_SCALE;
-    cairo_set_source_rgb(cr, 0,0,1);
-    cairo_line_to(cr, x, y);
-    cairo_stroke(cr);
-    //line to endpoint
-    cairo_move_to(cr, x,y);
-    x += GUI_DRAW_SCALE * C * cos(b-c);
-    y -= GUI_DRAW_SCALE * C * sin(b-c);
-    cairo_set_source_rgb(cr, 1,0,0);
-    cairo_line_to(cr, x, y);
-    cairo_stroke(cr);
-    
-    cairo_destroy(cr);
 }
 
 

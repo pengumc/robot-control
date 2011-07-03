@@ -12,6 +12,9 @@ keyboard:
 controller:
  right analog: same as wasd
  triangle: set analog mode for controller (red led on the controller)
+ with R1 pressed:
+  right analog: control leg 0
+  left analog control leg 1
 
 
 GUI
