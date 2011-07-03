@@ -57,6 +57,7 @@ class CQPed{
         void fillPSController(); 
         int moveByStick();
         //new and improved legs
+        //TODO privatize
         CLeg *legs[QP_LEGS];
 
     private:

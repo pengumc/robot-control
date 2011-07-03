@@ -22,6 +22,7 @@ static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
 static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
 static void connect_clicked_cb(GtkButton *button, gpointer data);
 void drawLeg(cairo_t *cr, gpointer data, uint8_t leg, double  startX,double startY);
+void drawLeg_around_0(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY);
 
 class CGtk{
     public:
@@ -57,5 +58,6 @@ class CGtk{
         friend void connect_clicked_cb(GtkButton *button, gpointer data);
         friend void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
         friend void drawLeg(cairo_t *cr, gpointer data, uint8_t leg, double  startX,double startY);
+        friend void drawLeg_around_0(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY);
 };
 #endif
