@@ -58,3 +58,7 @@ void rot_matrix_dot_vector(rot_matrix_t *M, rot_vector_t *x, rot_vector_t *y);
 ///create a rotation matrix from the euler angles in v
 void rot_matrix_build_from_angles(rot_matrix_t *M, rot_vector_t *v );
 
+//invert a 3d matrix
+void rot_matrix_invert(rot_matrix_t *M, rot_matrix_t *result);
+
+

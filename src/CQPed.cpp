@@ -38,10 +38,12 @@ void CQPed::reset(){
     
     //rotation matrix
     mainBodyAngles = rot_vector_alloc();
+    mainBodyAngles[2] = 1;
     tempAngles = rot_vector_alloc();
     mainBodyR = rot_matrix_alloc();
     tempM = rot_matrix_alloc();
     rot_matrix_build_from_angles(mainBodyR, mainBodyAngles);
+    rot_matrix_invert(mainBodyR, tempM);
     rot_matrix_print(mainBodyR);
 }
 
