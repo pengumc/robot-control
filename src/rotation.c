@@ -26,6 +26,12 @@ void rot_vector_change(rot_vector_t *v, uint8_t n, rot_vector_t a){
     v[n]+=a;
 }
 
+void rot_vector_changeAll(rot_vector_t *v, rot_vector_t a, rot_vector_t b, rot_vector_t c){
+    v[0] += a;
+    v[1] += b;
+    v[2] += c;
+}
+
 ///copy
 void rot_vector_copy(rot_vector_t *source, rot_vector_t *target){
     target[0] = source[0];

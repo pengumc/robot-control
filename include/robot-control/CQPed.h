@@ -39,7 +39,12 @@ class CQPed{
         double getRelativeServoX(uint8_t leg, uint8_t servo);
         double getRelativeServoY(uint8_t leg, uint8_t servo);
         double getRelativeServoZ(uint8_t leg, uint8_t servo);
+        void getRelativePos(rot_vector_t *returnVector, uint8_t leg, uint8_t point);
+        void getAbsolutePos(rot_vector_t *returnVector, uint8_t leg, uint8_t point);        
         
+        //rotation
+        void changeMainBodyAngle(double xaxis, double yaxis, double zaxis);
+        void getMainBodyRotation(rot_vector_t * returnVector);
         
         ///object to store and parse playstation controler data
         CPSController pscon;
@@ -70,8 +75,11 @@ class CQPed{
         rot_vector_t *V;
         ///main body rotation angles
         rot_vector_t *mainBodyAngles;
+        rot_vector_t *tempAngles;
         ///main body rotation matrix
         rot_matrix_t *mainBodyR;
+        rot_matrix_t *tempM;
+        void flipTemp();
         
         
 };

@@ -38,7 +38,9 @@ void CQPed::reset(){
     
     //rotation matrix
     mainBodyAngles = rot_vector_alloc();
+    tempAngles = rot_vector_alloc();
     mainBodyR = rot_matrix_alloc();
+    tempM = rot_matrix_alloc();
     rot_matrix_build_from_angles(mainBodyR, mainBodyAngles);
     rot_matrix_print(mainBodyR);
 }
@@ -46,11 +48,44 @@ void CQPed::reset(){
 CQPed::~CQPed(){
     rot_free(V);
     rot_free(mainBodyAngles);
+    rot_free(tempAngles);
     rot_free(mainBodyR);
+    rot_free(tempM);
     char i;
     for(i=0;i<QP_LEGS;i++) free(legs[i]);
 }
 
+void CQPed::flipTemp(){
+    rot_vector_t *vt;
+    rot_matrix_t *mt;
+    vt = mainBodyAngles;
+    mainBodyAngles = tempAngles;
+    tempAngles = vt;
+    mt = mainBodyR;
+    mainBodyR = tempM;
+    tempM = mt;
+}
+
+
+void CQPed::getRelativePos(rot_vector_t *returnVector, uint8_t leg, uint8_t point){
+    legs[leg]->fillWithPos(returnVector, point);
+}
+
+void CQPed::getAbsolutePos(rot_vector_t *returnVector, uint8_t leg, uint8_t point){
+    legs[leg]->fillWithPos(V, point);
+    rot_matrix_dot_vector(mainBodyR, V, returnVector);
+}
+
+void CQPed::changeMainBodyAngle(double xaxis, double yaxis, double zaxis){
+    rot_vector_changeAll(mainBodyAngles, xaxis, yaxis, zaxis);
+    rot_matrix_build_from_angles(mainBodyR, mainBodyAngles);
+    
+    
+}
+
+void CQPed::getMainBodyRotation(rot_vector_t *returnVector){
+    rot_vector_copy(mainBodyAngles, returnVector);
+}
 
 ///returns 0 if nothing was done, 1 otherwise
 int CQPed::moveByStick(){
@@ -132,9 +167,6 @@ double CQPed::getRelativeServoZ(uint8_t leg, uint8_t servo){
     return legs[leg]->getZ(servo);
 }
 
-double CQPed::getAbsoluteServoX(uint8_t leg, uint8_t servo){
-    //TODO
-}
 
 double CQPed::getAngle(uint8_t servo){
     return servoArray[servo].getAngle();

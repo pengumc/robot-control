@@ -29,6 +29,14 @@ CLeg::~CLeg(){
     rot_free(endPoint);
 }
 
+void CLeg::fillWithPos(rot_vector_t *v, uint8_t point){
+    if(point<LEG_DOF){
+        rot_vector_copy(servoPos[point], v);
+    }else{
+        rot_vector_copy(endPoint, v);    
+    }
+}
+
 //actually assign the calculated angles
 void CLeg::commit(){
     if(readyFlag){

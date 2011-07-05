@@ -20,6 +20,7 @@ rot_vector_t *rot_vector_alloc();
 void rot_vector_set(rot_vector_t *v, uint8_t n, rot_vector_t a);
 void rot_vector_change(rot_vector_t *v, uint8_t n, rot_vector_t a);
 void rot_vector_setAll(rot_vector_t *v, rot_vector_t x, rot_vector_t y, rot_vector_t z);
+void rot_vector_changeAll(rot_vector_t *v, rot_vector_t a, rot_vector_t b, rot_vector_t c);
 ///copy
 void rot_vector_copy(rot_vector_t *source, rot_vector_t *target);
 ///get value

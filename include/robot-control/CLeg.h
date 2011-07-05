@@ -22,6 +22,7 @@ class CLeg : public CSolver2{
         double getX(uint8_t point);// 0-4 (4 = endpoint)
         double getY(uint8_t point);
         double getZ(uint8_t point);
+        void fillWithPos(rot_vector_t *v, uint8_t point);
         int relativeMoveEndPoint(rot_vector_t *v);
         int setEndPoint(rot_vector_t *v);
         int calcAndTest(rot_vector_t *v);
