@@ -24,6 +24,7 @@ static void connect_clicked_cb(GtkButton *button, gpointer data);
 static void controller_clicked_cb(GtkButton *button, gpointer data);
 void drawLeg(cairo_t *cr, gpointer data, uint8_t leg, double  startX,double startY);
 void drawLeg_around_0(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY);
+void drawLineThrough(cairo_t *cr, double x1, double y1, double x2, double y2);
 
 class CGtk{
     public:
@@ -45,7 +46,7 @@ class CGtk{
         GtkWidget *vbox_mid;
         GtkWidget *vbox_right;
         GtkWidget *button_connect;
-        GtkWidget *button_controller;
+        GtkWidget *button_leg;
 	    GtkWidget *servo_label[SERVOS];
         GtkWidget *position_label[QP_LEGS];
         GtkWidget *da; ///drawing area

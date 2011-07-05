@@ -35,6 +35,12 @@ class CQPed{
         int changeSingleLeg(uint8_t leg,double X, double Y, double Z);
         int moveSingleLegTo(uint8_t leg,double X, double Y, double Z);
         
+        //get servo locations
+        double getRelativeServoX(uint8_t leg, uint8_t servo);
+        double getRelativeServoY(uint8_t leg, uint8_t servo);
+        double getRelativeServoZ(uint8_t leg, uint8_t servo);
+        
+        
         ///object to store and parse playstation controler data
         CPSController pscon;
         ///send the servo states to the physical device.
@@ -51,9 +57,6 @@ class CQPed{
         void printAngles();
         double getAngle(uint8_t servo);
         uint8_t getPW(uint8_t servo);
-        double getX(uint8_t leg);
-        double getY(uint8_t leg);
-        double getZ(uint8_t leg);
         void fillPSController(); 
         int moveByStick();
         //new and improved legs
@@ -65,6 +68,11 @@ class CQPed{
         CUsbDevice usb;
         ///general purpose vector
         rot_vector_t *V;
+        ///main body rotation angles
+        rot_vector_t *mainBodyAngles;
+        ///main body rotation matrix
+        rot_matrix_t *mainBodyR;
+        
         
 };
 #endif

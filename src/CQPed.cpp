@@ -35,10 +35,18 @@ void CQPed::reset(){
     rot_vector_setAll(V, -3, 0, 0);
     P.B = 5;
     legs[1] = new CLeg(&servoArray[3], &P, V);
+    
+    //rotation matrix
+    mainBodyAngles = rot_vector_alloc();
+    mainBodyR = rot_matrix_alloc();
+    rot_matrix_build_from_angles(mainBodyR, mainBodyAngles);
+    rot_matrix_print(mainBodyR);
 }
 
 CQPed::~CQPed(){
     rot_free(V);
+    rot_free(mainBodyAngles);
+    rot_free(mainBodyR);
     char i;
     for(i=0;i<QP_LEGS;i++) free(legs[i]);
 }
@@ -111,15 +119,21 @@ int8_t CQPed::getConnected(){
     return usb.connected;
 }
 
-double CQPed::getX(uint8_t leg){
-    return legs[leg]->getX(3);
+//servo = 0..3 (3 = endPoint)
+double CQPed::getRelativeServoX(uint8_t leg, uint8_t servo){
+    return legs[leg]->getX(servo);
 }
-double CQPed::getY(uint8_t leg){
 
-    return legs[leg]->getY(3);
+double CQPed::getRelativeServoY(uint8_t leg, uint8_t servo){
+    return legs[leg]->getY(servo);
 }
-double CQPed::getZ(uint8_t leg){
-    return legs[leg]->getZ(3);
+
+double CQPed::getRelativeServoZ(uint8_t leg, uint8_t servo){
+    return legs[leg]->getZ(servo);
+}
+
+double CQPed::getAbsoluteServoX(uint8_t leg, uint8_t servo){
+    //TODO
 }
 
 double CQPed::getAngle(uint8_t servo){
@@ -155,7 +169,10 @@ int CQPed::changeAllLegs(double X, double Y, double Z){
 
 void CQPed::printPos(){
     printf("x0 = % .2g\ny0 = % .2g\nx1 = % .2g\ny1 = % .2g\n",
-    getX(0), getY(0), getX(1), getY(1));
+    getRelativeServoX(0, LEG_ENDPOINT),
+    getRelativeServoY(0, LEG_ENDPOINT),
+    getRelativeServoX(1, LEG_ENDPOINT),
+    getRelativeServoY(1, LEG_ENDPOINT));
 }
 
 

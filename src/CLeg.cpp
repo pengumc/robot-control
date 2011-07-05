@@ -37,15 +37,6 @@ void CLeg::commit(){
     }
 }
 
-//returns 0 on success, nonsense otherwise
-int CLeg::moveEndPointTo(rot_vector_t *v){
-    return calcAndTest(v);    
-//    if(calcAndTest(v) == 0){
-//        assignAngles();
-//        return 0;
-//    }
-//        else return -1;
-}
 
 ///just calc and test the angles, return 0 on succes
 int CLeg::calcAndTest(rot_vector_t *v){
@@ -60,10 +51,16 @@ int CLeg::calcAndTest(rot_vector_t *v){
     return -1;
 }
 
+
 int CLeg::relativeMoveEndPoint(rot_vector_t *v){
     rot_vector_add(v, endPoint);
     rot_vector_minus(v, servoPos[0]);
-    return moveEndPointTo(v);
+    return calcAndTest(v);
+}
+
+//takes relative v
+int CLeg::setEndPoint(rot_vector_t *v){
+    return calcAndTest(v);
 }
 
 int CLeg::testAngles(){

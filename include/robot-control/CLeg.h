@@ -7,6 +7,7 @@
 #include "robot-control/rotation.h"
 #include "robot-control/CSolver_new.h"
 #define LEG_DOF 3
+#define LEG_ENDPOINT LEG_DOF
 #define LEG_READY 1
 #define LEG_NOT_READY 0
 
@@ -21,8 +22,8 @@ class CLeg : public CSolver2{
         double getX(uint8_t point);// 0-4 (4 = endpoint)
         double getY(uint8_t point);
         double getZ(uint8_t point);
-        int moveEndPointTo(rot_vector_t *v);
         int relativeMoveEndPoint(rot_vector_t *v);
+        int setEndPoint(rot_vector_t *v);
         int calcAndTest(rot_vector_t *v);
 
         int readyFlag; //1 = ready, 0= not ready
@@ -34,7 +35,7 @@ class CLeg : public CSolver2{
     private:
         ///physical position relative to the main body
         rot_vector_t *servoPos[LEG_DOF];
-        ///physical position of the leg endpoitn to the main body
+        ///physical position of the leg endpoint to the main body
         rot_vector_t *endPoint;
         CServo2 *servos;
         int testAngles();
