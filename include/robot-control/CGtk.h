@@ -21,6 +21,7 @@ static void timeout_disconnected(gpointer data);
 static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
 static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
 static void connect_clicked_cb(GtkButton *button, gpointer data);
+static void controller_clicked_cb(GtkButton *button, gpointer data);
 void drawLeg(cairo_t *cr, gpointer data, uint8_t leg, double  startX,double startY);
 void drawLeg_around_0(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY);
 
@@ -28,6 +29,7 @@ class CGtk{
     public:
         uint8_t running;
         CGtk(CQPed *Q);
+        uint8_t selected_leg;
         void run();
         void connect_timeout();
         void updateServoData();
@@ -50,12 +52,15 @@ class CGtk{
         CQPed *qp;
         void show_disconnected();
         void show_connected();
+        void show_right();        
+        void show_left();
         guint timeoutID;
         friend gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer data);
         friend gboolean timeout1(gpointer data);
         friend void timeout_disconnected(gpointer data);
         friend void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
         friend void connect_clicked_cb(GtkButton *button, gpointer data);
+        friend void controller_clicked_cb(GtkButton *button, gpointer data);
         friend void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
         friend void drawLeg(cairo_t *cr, gpointer data, uint8_t leg, double  startX,double startY);
         friend void drawLeg_around_0(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY);

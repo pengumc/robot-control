@@ -3,7 +3,8 @@
 static void close_window(){gtk_main_quit();}
 
 CGtk::CGtk(CQPed *Q){ 
-    running=0; 
+    running = 0; 
+    selected_leg = 0;
     gtk_init(NULL,NULL);
     //build gui elements
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -27,7 +28,8 @@ CGtk::CGtk(CQPed *Q){
     button_connect = gtk_button_new();
     show_disconnected();
     gtk_widget_set_size_request(button_connect, 32,32);
-    button_controller = gtk_toggle_button_new();
+    button_controller = gtk_button_new();
+    show_right();
     gtk_widget_set_size_request(button_controller, 32,32);
     gtk_box_pack_start(GTK_BOX(vbox_left), hbox_button,FALSE,FALSE,0);
     gtk_box_pack_start(GTK_BOX(hbox_button),button_connect,FALSE,FALSE,0);
@@ -58,6 +60,7 @@ CGtk::CGtk(CQPed *Q){
     g_signal_connect(window, "destroy", G_CALLBACK(close_window),NULL);
     g_signal_connect(window, "key_press_event", G_CALLBACK(key_press_callback), (gpointer)this);
     g_signal_connect(button_connect, "clicked", G_CALLBACK(connect_clicked_cb), (gpointer)this);
+    g_signal_connect(button_controller, "clicked", G_CALLBACK(controller_clicked_cb), (gpointer)this);
     connect_timeout();
     g_signal_connect(G_OBJECT(da), "expose_event", G_CALLBACK(paint), (gpointer)this);
     g_signal_connect(G_OBJECT(gamepadDrawing),
@@ -75,6 +78,18 @@ void CGtk::show_disconnected(){
     GtkWidget *img;
     img = gtk_image_new_from_stock(GTK_STOCK_DIALOG_ERROR, GTK_ICON_SIZE_BUTTON);
     gtk_button_set_image(GTK_BUTTON(button_connect),img);
+}
+
+void CGtk::show_left(){
+    GtkWidget *img;
+    img = gtk_image_new_from_stock(GTK_STOCK_GO_BACK, GTK_ICON_SIZE_BUTTON);
+    gtk_button_set_image(GTK_BUTTON(button_controller),img);
+}
+
+void CGtk::show_right(){
+    GtkWidget *img;
+    img = gtk_image_new_from_stock(GTK_STOCK_GO_FORWARD, GTK_ICON_SIZE_BUTTON);
+    gtk_button_set_image(GTK_BUTTON(button_controller),img);
 }
 
 void CGtk::updateGamePadDrawing(){
@@ -147,6 +162,22 @@ static gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer 
         if(gui->qp->changeAllLegs(-GUI_KEYBOARD_SPEED,0,0)==0)
         gui->qp->sendToDev();
         break;
+    case 'W':
+        if(gui->qp->changeSingleLeg(gui->selected_leg, 0, -GUI_KEYBOARD_SPEED,0)==0)
+        gui->qp->sendToDev();
+        break;
+    case 'S':
+        if(gui->qp->changeSingleLeg(gui->selected_leg, 0, GUI_KEYBOARD_SPEED,0)==0)
+        gui->qp->sendToDev();
+        break;
+    case 'A':
+        if(gui->qp->changeSingleLeg(gui->selected_leg, GUI_KEYBOARD_SPEED,0,0)==0)
+        gui->qp->sendToDev();
+        break;
+    case 'D':
+        if(gui->qp->changeSingleLeg(gui->selected_leg, -GUI_KEYBOARD_SPEED,0,0)==0)
+        gui->qp->sendToDev();
+        break;
     }
     usleep(10000);//allow device to transmit before next command;
     gui->updateServoData();
@@ -162,6 +193,17 @@ static void connect_clicked_cb(GtkButton *button, gpointer data){
     gui->qp->sendToDev();
     timeout1(data);
 }
+static void controller_clicked_cb(GtkButton *button, gpointer data){
+    CGtk* gui = ((CGtk*)data);
+    if(gui->selected_leg == 0){
+        gui->selected_leg = 1;
+        gui->show_left();
+    }else{
+        gui->selected_leg = 0;
+        gui->show_right();
+    }
+}
+
 
 static gboolean timeout1(gpointer data){
     CGtk* gui = ((CGtk*)data);
