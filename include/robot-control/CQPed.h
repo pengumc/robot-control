@@ -78,7 +78,7 @@ class CQPed{
         rot_vector_t *tempAngles;
         ///main body rotation matrix
         rot_matrix_t *mainBodyR;
-        rot_matrix_t *tempM;
+        rot_matrix_t *inverseR;
         void flipTemp();
         
         
