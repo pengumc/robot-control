@@ -6,7 +6,8 @@ XY control for 2 connected 3DOF legs with gtk gui
 
 keyboard:
  'q' : disconnect timeout routine, resulting in no more controller polling.
- wasd : change main body posistion (up left down right)
+ wasd : change both leg endPoints (up left down right)
+ WASD : change single leg endPoint (leg dictated by second button, click to switch)
  '`' : reset and reconnect usb.
  any key will refresh the actual servo positions stored in the device.
 controller:
