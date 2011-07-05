@@ -26,6 +26,12 @@ void rot_vector_change(rot_vector_t *v, uint8_t n, rot_vector_t a){
     v[n]+=a;
 }
 
+void rot_vector_changeAll(rot_vector_t *v, rot_vector_t a, rot_vector_t b, rot_vector_t c){
+    v[0] += a;
+    v[1] += b;
+    v[2] += c;
+}
+
 ///copy
 void rot_vector_copy(rot_vector_t *source, rot_vector_t *target){
     target[0] = source[0];
@@ -144,6 +150,41 @@ void rot_matrix_build_from_angles(rot_matrix_t *M, rot_vector_t *v ){
     rot_matrix_set(M, 2, 1, cphi*stheta - ctheta*sphi*spsi);
     rot_matrix_set(M, 2, 2, ctheta*cpsi);
 }
-
+//inverse matrix, manual //TODO LU decomposition
+/*
+a 0
+b 1
+c 2
+d 3
+e 4
+f 5
+g 6
+h 7
+k 8
+*/
+void rot_matrix_invert(rot_matrix_t *M, rot_matrix_t *result){
+    const double A = M[4]*M[8] - M[5]*M[7];
+    const double B = M[5]*M[6] - M[3]*M[8];
+    const double C = M[3]*M[7] - M[4]*M[6];
+    const double D = M[2]*M[7] - M[1]*M[8];
+    const double E = M[0]*M[8] - M[2]*M[6];
+    const double F = M[6]*M[1] - M[0]*M[7];
+    const double G = M[1]*M[5] - M[2]*M[4];
+    const double H = M[2]*M[3] - M[0]*M[5];
+    const double K = M[0]*M[4] - M[1]*M[3];
+    const double det = M[0]*A + M[1]*B + M[2]*C;
+    
+    result[0] = A;
+    result[1] = D;
+    result[2] = G;
+    result[3] = B;
+    result[4] = E;
+    result[5] = H;
+    result[6] = C;
+    result[7] = F;
+    result[8] = K;
+    
+    rot_matrix_scale(result, 1.0/det);
+}
 
 

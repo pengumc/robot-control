@@ -28,12 +28,12 @@ CGtk::CGtk(CQPed *Q){
     button_connect = gtk_button_new();
     show_disconnected();
     gtk_widget_set_size_request(button_connect, 32,32);
-    button_controller = gtk_button_new();
+    button_leg = gtk_button_new();
     show_right();
-    gtk_widget_set_size_request(button_controller, 32,32);
+    gtk_widget_set_size_request(button_leg, 32,32);
     gtk_box_pack_start(GTK_BOX(vbox_left), hbox_button,FALSE,FALSE,0);
     gtk_box_pack_start(GTK_BOX(hbox_button),button_connect,FALSE,FALSE,0);
-    gtk_box_pack_start(GTK_BOX(hbox_button),button_controller,FALSE,FALSE,0);
+    gtk_box_pack_start(GTK_BOX(hbox_button),button_leg,FALSE,FALSE,0);
     for(i=0;i<SERVOS;i++){
         sprintf(text, GUI_SERVO_LABEL_FORMAT, i,0.0,0);
         servo_label[i] = gtk_label_new(NULL); //gtk_check_button_new_with_label(text);
@@ -60,7 +60,7 @@ CGtk::CGtk(CQPed *Q){
     g_signal_connect(window, "destroy", G_CALLBACK(close_window),NULL);
     g_signal_connect(window, "key_press_event", G_CALLBACK(key_press_callback), (gpointer)this);
     g_signal_connect(button_connect, "clicked", G_CALLBACK(connect_clicked_cb), (gpointer)this);
-    g_signal_connect(button_controller, "clicked", G_CALLBACK(controller_clicked_cb), (gpointer)this);
+    g_signal_connect(button_leg, "clicked", G_CALLBACK(controller_clicked_cb), (gpointer)this);
     connect_timeout();
     g_signal_connect(G_OBJECT(da), "expose_event", G_CALLBACK(paint), (gpointer)this);
     g_signal_connect(G_OBJECT(gamepadDrawing),
@@ -83,13 +83,13 @@ void CGtk::show_disconnected(){
 void CGtk::show_left(){
     GtkWidget *img;
     img = gtk_image_new_from_stock(GTK_STOCK_GO_BACK, GTK_ICON_SIZE_BUTTON);
-    gtk_button_set_image(GTK_BUTTON(button_controller),img);
+    gtk_button_set_image(GTK_BUTTON(button_leg),img);
 }
 
 void CGtk::show_right(){
     GtkWidget *img;
     img = gtk_image_new_from_stock(GTK_STOCK_GO_FORWARD, GTK_ICON_SIZE_BUTTON);
-    gtk_button_set_image(GTK_BUTTON(button_controller),img);
+    gtk_button_set_image(GTK_BUTTON(button_leg),img);
 }
 
 void CGtk::updateGamePadDrawing(){
@@ -128,7 +128,11 @@ void CGtk::updatePositions(){
     uint8_t i;
     char text[50];
     for(i=0;i<QP_LEGS;i++){
-        sprintf(text, GUI_POSITION_LABEL_FORMAT,qp->getX(i),qp->getY(i),qp->getZ(i));
+        sprintf(text, GUI_POSITION_LABEL_FORMAT,
+            qp->getRelativeServoX(i, LEG_ENDPOINT),
+            qp->getRelativeServoY(i, LEG_ENDPOINT),
+            qp->getRelativeServoZ(i, LEG_ENDPOINT)
+        );
         gtk_label_set_text(GTK_LABEL(position_label[i]),text);
     }
 }
@@ -176,6 +180,22 @@ static gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer 
         break;
     case 'D':
         if(gui->qp->changeSingleLeg(gui->selected_leg, -GUI_KEYBOARD_SPEED,0,0)==0)
+        gui->qp->sendToDev();
+        break;
+    case 'f':
+        if(gui->qp->changeMainBodyAngle(0,GUI_KEYBOARD_SPEED/10,0)==0)
+        gui->qp->sendToDev();
+        break;
+    case 'h':
+        if(gui->qp->changeMainBodyAngle(0,-GUI_KEYBOARD_SPEED/10,0)==0)
+        gui->qp->sendToDev();
+        break;
+    case 't':
+        if(gui->qp->changeMainBodyAngle(0,0,GUI_KEYBOARD_SPEED/10)==0)
+        gui->qp->sendToDev();
+        break;
+    case 'g':
+        if(gui->qp->changeMainBodyAngle(0,0,-GUI_KEYBOARD_SPEED/10)==0)
         gui->qp->sendToDev();
         break;
     }
@@ -448,6 +468,17 @@ void drawLeg_around_0(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,d
     cairo_stroke(cr);
 }
 
+void drawLineThrough(cairo_t *cr, double x1, double y1, double x2, double y2){
+    const double dx = x2 - x1;
+    const double dy = y2 - y1;
+    const double b = y1 - dy/dx * x1;
+    //assume color is set
+    cairo_move_to(cr, x1, y1);
+    cairo_rel_move_to(cr, -x1, dy/dx * -x1);
+    cairo_rel_line_to(cr, x2 + x1, dy/dx * (x1+x2));
+    cairo_stroke(cr);
+}
+
 static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     CGtk* gui = ((CGtk*)data);
     GtkAllocation alloc;
@@ -462,19 +493,23 @@ static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     drawLeg_around_0(cr,data, 1, alloc.width/2, alloc.height/2);  
     
     //draw line through both endPoints
-    //dy/dx + b
-    double x1, x2, y1, y2, dx, dy, b;
-    x1 = alloc.width/2 +  (gui->qp->legs[1]->getX(3) * GUI_DRAW_SCALE);
-    x2 = alloc.width/2 +  gui->qp->legs[0]->getX(3) * GUI_DRAW_SCALE;
-    y1 = gui->qp->legs[1]->getY(3) * GUI_DRAW_SCALE;
-    y2 = gui->qp->legs[0]->getY(3) * GUI_DRAW_SCALE;
-    dx = x2-x1;
-    dy = (y2-y1);
-    b= y1 - dy/dx*x1 ;
-    cairo_set_source_rgb(cr,1,0,0);
-    cairo_move_to(cr, 0, alloc.height/2 - b);
-    cairo_line_to(cr, alloc.width, alloc.height/2 - (dy/dx * alloc.width +b) );
-    cairo_stroke(cr);
+    cairo_set_source_rgb(cr,1,0,0);    
+    drawLineThrough(cr,
+        alloc.width/2 +  gui->qp->legs[1]->getX(3) * GUI_DRAW_SCALE,
+        alloc.height/2 - gui->qp->legs[1]->getY(3) * GUI_DRAW_SCALE,
+        alloc.width/2 +  gui->qp->legs[0]->getX(3) * GUI_DRAW_SCALE,
+        alloc.height/2 - gui->qp->legs[0]->getY(3) * GUI_DRAW_SCALE
+    );
+    //line thourgh main body
+    cairo_set_source_rgb(cr,0,0,0);    
+    cairo_set_line_width(cr,1);    
+    
+    drawLineThrough(cr,
+        alloc.width/2 +  gui->qp->legs[1]->getX(0) * GUI_DRAW_SCALE,
+        alloc.height/2 - gui->qp->legs[1]->getY(0) * GUI_DRAW_SCALE,
+        alloc.width/2 +  gui->qp->legs[0]->getX(0) * GUI_DRAW_SCALE,
+        alloc.height/2 - gui->qp->legs[0]->getY(0) * GUI_DRAW_SCALE
+    );
     
     cairo_destroy(cr);
     return;

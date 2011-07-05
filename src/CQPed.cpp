@@ -35,14 +35,78 @@ void CQPed::reset(){
     rot_vector_setAll(V, -3, 0, 0);
     P.B = 5;
     legs[1] = new CLeg(&servoArray[3], &P, V);
+    
+    //rotation matrix
+    mainBodyAngles = rot_vector_alloc();
+    tempAngles = rot_vector_alloc();
+    mainBodyR = rot_matrix_alloc();
+    inverseR = rot_matrix_alloc();
+    changeMainBodyAngle(0,0,0);
+    rot_matrix_print(mainBodyR);
 }
 
 CQPed::~CQPed(){
     rot_free(V);
+    rot_free(mainBodyAngles);
+    rot_free(tempAngles);
+    rot_free(mainBodyR);
+    rot_free(inverseR);
     char i;
     for(i=0;i<QP_LEGS;i++) free(legs[i]);
 }
 
+void CQPed::flipTemp(){
+    rot_vector_t *vt;
+    rot_matrix_t *mt;
+    vt = mainBodyAngles;
+    mainBodyAngles = tempAngles;
+    tempAngles = vt;
+    mt = mainBodyR;
+    mainBodyR = inverseR;
+    inverseR = mt;
+}
+
+
+void CQPed::getRelativePos(rot_vector_t *returnVector, uint8_t leg, uint8_t point){
+    legs[leg]->fillWithPos(returnVector, point);
+}
+
+void CQPed::getAbsolutePos(rot_vector_t *returnVector, uint8_t leg, uint8_t point){
+    legs[leg]->fillWithPos(V, point);
+    rot_matrix_dot_vector(mainBodyR, V, returnVector);
+}
+
+int CQPed::changeMainBodyAngle(double xaxis, double yaxis, double zaxis){
+    //TODO rollback
+    rot_vector_setAll(tempAngles, xaxis, yaxis, zaxis);
+    rot_matrix_build_from_angles(mainBodyR, tempAngles);
+    rot_matrix_invert(mainBodyR, inverseR);
+    char i;
+    char error = 0;
+    for(i=0;i<QP_LEGS;i++){
+        //move leg to back rotated point
+        legs[i]->fillWithPos(V, LEG_ENDPOINT);
+//        printf("leg %d endPoint: ",i);
+//        rot_vector_print(V);
+        rot_matrix_dot_vector(inverseR, V, V);
+//        printf("leg %d endPoint rotated: ",i);
+//        rot_vector_print(V);
+        error += legs[i]->setEndPoint(V);
+    }
+    if(error==0){
+        rot_vector_changeAll(mainBodyAngles, xaxis, yaxis, zaxis);
+        printf("angles, "); rot_vector_print(mainBodyAngles);
+        for(i=0;i<QP_LEGS;i++) if(legs[i]->readyFlag) legs[i]->commit();
+    }else printf("Rotation failed\n");
+    //setup matrices for further movement
+    rot_matrix_build_from_angles(mainBodyR, mainBodyAngles);  
+    rot_matrix_invert(mainBodyR, inverseR);    
+    return error;
+}
+
+void CQPed::getMainBodyRotation(rot_vector_t *returnVector){
+    rot_vector_copy(mainBodyAngles, returnVector);
+}
 
 ///returns 0 if nothing was done, 1 otherwise
 int CQPed::moveByStick(){
@@ -111,16 +175,19 @@ int8_t CQPed::getConnected(){
     return usb.connected;
 }
 
-double CQPed::getX(uint8_t leg){
-    return legs[leg]->getX(3);
+//servo = 0..3 (3 = endPoint)
+double CQPed::getRelativeServoX(uint8_t leg, uint8_t servo){
+    return legs[leg]->getX(servo);
 }
-double CQPed::getY(uint8_t leg){
 
-    return legs[leg]->getY(3);
+double CQPed::getRelativeServoY(uint8_t leg, uint8_t servo){
+    return legs[leg]->getY(servo);
 }
-double CQPed::getZ(uint8_t leg){
-    return legs[leg]->getZ(3);
+
+double CQPed::getRelativeServoZ(uint8_t leg, uint8_t servo){
+    return legs[leg]->getZ(servo);
 }
+
 
 double CQPed::getAngle(uint8_t servo){
     return servoArray[servo].getAngle();
@@ -133,14 +200,17 @@ uint8_t CQPed::getPW(uint8_t servo){
 
 int CQPed::changeSingleLeg(uint8_t leg, double X, double Y, double Z){
     rot_vector_setAll(V, X, Y, Z);
+    rot_matrix_dot_vector(inverseR, V,V);
     legs[leg]->relativeMoveEndPoint(V);        
     if(legs[leg]->readyFlag) legs[leg]->commit();
 }
 
 int CQPed::changeAllLegs(double X, double Y, double Z){
     rot_vector_setAll(V, X, Y, Z);
+    rot_matrix_dot_vector(inverseR, V,V);
     legs[0]->relativeMoveEndPoint(V);
     rot_vector_setAll(V, X, Y, Z);
+    rot_matrix_dot_vector(inverseR, V,V);
     legs[1]->relativeMoveEndPoint(V);
     int success = 0;
     char i;
@@ -155,7 +225,10 @@ int CQPed::changeAllLegs(double X, double Y, double Z){
 
 void CQPed::printPos(){
     printf("x0 = % .2g\ny0 = % .2g\nx1 = % .2g\ny1 = % .2g\n",
-    getX(0), getY(0), getX(1), getY(1));
+    getRelativeServoX(0, LEG_ENDPOINT),
+    getRelativeServoY(0, LEG_ENDPOINT),
+    getRelativeServoX(1, LEG_ENDPOINT),
+    getRelativeServoY(1, LEG_ENDPOINT));
 }
 
 

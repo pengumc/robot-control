@@ -1,13 +1,17 @@
 Version 0.4 almost 0.5
-XY control for 2 connected 3DOF legs with gtk gui
+XYZ/rotanional control for 2 connected 3DOF legs with gtk gui
   .___.X.___.
 ./           \.
 |             |
 
+note: the firmware running on the controling hardware is in the usbtoI2c and servocontroller repositories. 
+This repository contains the code that runs on the pc, doing the inverse kinematics and providing an interface.
+
+CONTROLS
 keyboard:
  'q' : disconnect timeout routine, resulting in no more controller polling.
  wasd : change both leg endPoints (up left down right)
- WASD : change single leg endPoint (leg dictated by second button, click to switch)
+ WASD : change single leg endPoint (leg dictated by the button with the arrow on it, click to switch)
  '`' : reset and reconnect usb.
  any key will refresh the actual servo positions stored in the device.
 controller:
@@ -24,7 +28,7 @@ some visualization has bee added.
 NOTES:
 ----------------------------------
 WINDOWS (minGW)
-gtk is being a bitch on windows so support is dropped for now.
+compiling 32-bit gtk under 64 bit windows is a pain, so support is dropped for now.
 
 g++ (4 or higher)
 libgmp

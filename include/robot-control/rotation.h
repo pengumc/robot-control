@@ -20,6 +20,7 @@ rot_vector_t *rot_vector_alloc();
 void rot_vector_set(rot_vector_t *v, uint8_t n, rot_vector_t a);
 void rot_vector_change(rot_vector_t *v, uint8_t n, rot_vector_t a);
 void rot_vector_setAll(rot_vector_t *v, rot_vector_t x, rot_vector_t y, rot_vector_t z);
+void rot_vector_changeAll(rot_vector_t *v, rot_vector_t a, rot_vector_t b, rot_vector_t c);
 ///copy
 void rot_vector_copy(rot_vector_t *source, rot_vector_t *target);
 ///get value
@@ -56,4 +57,8 @@ void rot_matrix_dot_vector(rot_matrix_t *M, rot_vector_t *x, rot_vector_t *y);
 
 ///create a rotation matrix from the euler angles in v
 void rot_matrix_build_from_angles(rot_matrix_t *M, rot_vector_t *v );
+
+//invert a 3d matrix
+void rot_matrix_invert(rot_matrix_t *M, rot_matrix_t *result);
+
 
