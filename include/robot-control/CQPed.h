@@ -43,7 +43,7 @@ class CQPed{
         void getAbsolutePos(rot_vector_t *returnVector, uint8_t leg, uint8_t point);        
         
         //rotation
-        void changeMainBodyAngle(double xaxis, double yaxis, double zaxis);
+        int changeMainBodyAngle(double xaxis, double yaxis, double zaxis);
         void getMainBodyRotation(rot_vector_t * returnVector);
         
         ///object to store and parse playstation controler data

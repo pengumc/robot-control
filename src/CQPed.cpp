@@ -38,12 +38,10 @@ void CQPed::reset(){
     
     //rotation matrix
     mainBodyAngles = rot_vector_alloc();
-    mainBodyAngles[2] = 1;
     tempAngles = rot_vector_alloc();
     mainBodyR = rot_matrix_alloc();
     tempM = rot_matrix_alloc();
-    rot_matrix_build_from_angles(mainBodyR, mainBodyAngles);
-    rot_matrix_invert(mainBodyR, tempM);
+    changeMainBodyAngle(0,0,0);
     rot_matrix_print(mainBodyR);
 }
 
@@ -78,11 +76,29 @@ void CQPed::getAbsolutePos(rot_vector_t *returnVector, uint8_t leg, uint8_t poin
     rot_matrix_dot_vector(mainBodyR, V, returnVector);
 }
 
-void CQPed::changeMainBodyAngle(double xaxis, double yaxis, double zaxis){
-    rot_vector_changeAll(mainBodyAngles, xaxis, yaxis, zaxis);
-    rot_matrix_build_from_angles(mainBodyR, mainBodyAngles);
-    
-    
+int CQPed::changeMainBodyAngle(double xaxis, double yaxis, double zaxis){
+    //TODO rollback
+    rot_vector_setAll(tempAngles, xaxis, yaxis, zaxis);
+    rot_matrix_build_from_angles(mainBodyR, tempAngles);
+    rot_matrix_invert(mainBodyR, tempM);
+    char i;
+    char error = 0;
+    for(i=0;i<QP_LEGS;i++){
+        //move leg to back rotated point
+        legs[i]->fillWithPos(V, LEG_ENDPOINT);
+//        printf("leg %d endPoint: ",i);
+//        rot_vector_print(V);
+        rot_matrix_dot_vector(tempM, V, V);
+//        printf("leg %d endPoint rotated: ",i);
+//        rot_vector_print(V);
+        error += legs[i]->setEndPoint(V);
+    }
+    if(error==0){
+        rot_vector_changeAll(mainBodyAngles, xaxis, yaxis, zaxis);
+        printf("angles, "); rot_vector_print(mainBodyAngles);
+        for(i=0;i<QP_LEGS;i++) if(legs[i]->readyFlag) legs[i]->commit();
+    }else printf("Rotation failed\n");
+    return error;
 }
 
 void CQPed::getMainBodyRotation(rot_vector_t *returnVector){

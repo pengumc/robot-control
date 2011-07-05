@@ -182,6 +182,22 @@ static gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer 
         if(gui->qp->changeSingleLeg(gui->selected_leg, -GUI_KEYBOARD_SPEED,0,0)==0)
         gui->qp->sendToDev();
         break;
+    case 'f':
+        if(gui->qp->changeMainBodyAngle(0,GUI_KEYBOARD_SPEED/10,0)==0)
+        gui->qp->sendToDev();
+        break;
+    case 'h':
+        if(gui->qp->changeMainBodyAngle(0,-GUI_KEYBOARD_SPEED/10,0)==0)
+        gui->qp->sendToDev();
+        break;
+    case 't':
+        if(gui->qp->changeMainBodyAngle(0,0,GUI_KEYBOARD_SPEED/10)==0)
+        gui->qp->sendToDev();
+        break;
+    case 'g':
+        if(gui->qp->changeMainBodyAngle(0,0,-GUI_KEYBOARD_SPEED/10)==0)
+        gui->qp->sendToDev();
+        break;
     }
     usleep(10000);//allow device to transmit before next command;
     gui->updateServoData();

@@ -66,8 +66,9 @@ int CLeg::relativeMoveEndPoint(rot_vector_t *v){
     return calcAndTest(v);
 }
 
-//takes relative v
+//takes v relative to COB
 int CLeg::setEndPoint(rot_vector_t *v){
+    rot_vector_minus(v, servoPos[0]);
     return calcAndTest(v);
 }
 
