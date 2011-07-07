@@ -50,6 +50,8 @@ CGtk::CGtk(CQPed *Q){
         position_label[i] = gtk_label_new(text);
         gtk_box_pack_start(GTK_BOX(vbox_right), position_label[i], TRUE, TRUE, 0);
     }
+    adc_label = gtk_label_new("");
+    gtk_box_pack_start(GTK_BOX(vbox_right), adc_label, TRUE, TRUE, 0);
     //gamepad drawing
     gamepadDrawing = gtk_drawing_area_new();
     gtk_box_pack_start(GTK_BOX(vbox_main), gamepadDrawing, TRUE, TRUE,0);
@@ -90,6 +92,16 @@ void CGtk::show_right(){
     GtkWidget *img;
     img = gtk_image_new_from_stock(GTK_STOCK_GO_FORWARD, GTK_ICON_SIZE_BUTTON);
     gtk_button_set_image(GTK_BUTTON(button_leg),img);
+}
+
+void CGtk::updateADC(){
+    char text[100];
+    sprintf(text, GUI_ADC_LABEL_FORMAT,
+    qp->adc[0],
+    qp->filterX.x, 
+    qp->adc[1],
+    qp->filterY.x);
+    gtk_label_set_markup(GTK_LABEL(adc_label), text);
 }
 
 void CGtk::updateGamePadDrawing(){
@@ -228,15 +240,20 @@ static void controller_clicked_cb(GtkButton *button, gpointer data){
 static gboolean timeout1(gpointer data){
     CGtk* gui = ((CGtk*)data);
     if(gui->running == 0) return FALSE;
+    gui->qp->getUsbData();
     gui->qp->fillPSController();
+    gui->qp->fillADC();
+    gui->updateADC();
     gui->updateGamePadDrawing();
     if(gui->qp->moveByStick()){
         gui->qp->sendToDev();
-        //usleep(10000);//allow device to transmit before next command;
-        //gui->updateServoData();
-        gui->updatePositions();
-        paint(gui->da, NULL, gui);
+    //usleep(10000);//allow device to transmit before next command;
+    //gui->updateServoData();
+
     }
+    gui->updatePositions();    
+        paint(gui->da, NULL, gui);
+    
     if(gui->qp->getConnected()>1) gui->show_connected();
     else gui->show_disconnected();
     return TRUE;

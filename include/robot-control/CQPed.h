@@ -10,6 +10,15 @@
 #define QP_LEGS 2
 #define QP_CONTROLLER_TRESHOLD 32
 #define QP_STICK_SPEED (0.2/128)
+#define KALMAN_TYPE double
+typedef struct KALMAN{
+  KALMAN_TYPE x;
+  KALMAN_TYPE x_last;
+  KALMAN_TYPE P;
+  KALMAN_TYPE P_last;
+  KALMAN_TYPE Sz;
+  KALMAN_TYPE Sw;
+} kalman_t;
 
 
 
@@ -46,14 +55,13 @@ class CQPed{
         int changeMainBodyAngle(double xaxis, double yaxis, double zaxis);
         void getMainBodyRotation(rot_vector_t * returnVector);
         
-        ///object to store and parse playstation controler data
-        CPSController pscon;
-        ///send the servo states to the physical device.
+        //usb and other
         void sendToDev();
-        ///read servo states from physical device.
         void readFromDev();
-        ///read PS controller data
-        void readPSController();
+        CPSController pscon;
+        void fillPSController();
+        int getUsbData(); 
+
         ///change the angle of a single servo by a.
         void changeServo(uint8_t servo, double a);
         ///array of servos, 3 per leg.
@@ -62,11 +70,17 @@ class CQPed{
         void printAngles();
         double getAngle(uint8_t servo);
         uint8_t getPW(uint8_t servo);
-        void fillPSController(); 
         int moveByStick();
-        //new and improved legs
         //TODO privatize
         CLeg *legs[QP_LEGS];
+        
+        //accelerometer
+        uint8_t adc[2];
+        uint8_t acc_mid[2]; 
+        void fillADC();
+        //X and Y as noted on accelerometer
+        kalman_t filterX;
+        kalman_t filterY;
 
     private:
         ///the usb helper.
