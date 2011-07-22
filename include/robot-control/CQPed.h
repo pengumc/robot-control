@@ -7,7 +7,7 @@
 #include "robot-control/CLeg.h"
 #include "robot-control/rotation.h"
 #define QP_SERVOS 12 //6 unused, TODO should be changed to QP_LEGS*LEG_DOF
-#define QP_LEGS 2
+#define QP_LEGS 4
 #define QP_CONTROLLER_TRESHOLD 32
 #define QP_STICK_SPEED (0.2/128)
 #define KALMAN_TYPE double

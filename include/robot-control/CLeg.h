@@ -40,7 +40,8 @@ class CLeg : public CSolver2{
         rot_vector_t *endPoint;
         CServo2 *servos;
         int testAngles();
-        void assignAngles();        
+        void assignAngles();      
+        rot_vector_t * V; //general purpose vector  
 };
 
 #endif

@@ -33,6 +33,14 @@ void CQPed::reset(){
     servoArray[4].flipDirection();
     servoArray[5].offset = -(PI/2);
     servoArray[5].setAngle(-PI/2);
+    //second set
+    servoArray[8].offset = -(PI/2);
+    servoArray[8].flipDirection();
+    servoArray[8].setAngle(-PI/2);
+    servoArray[9].mirrorZ();
+    servoArray[10].flipDirection();
+    servoArray[11].offset = -(PI/2);
+    servoArray[11].setAngle(-PI/2);
     //print start states
     for(i=0;i<QP_SERVOS/2;i++)  {
         printf("servo %d:\n",i);
@@ -43,7 +51,7 @@ void CQPed::reset(){
     P.A = 3;
     P.B = 6.5;
     P.C = 5.5;
-    V = rot_vector_alloc();
+    V = rot_vector_alloc(); //general purpose vector
 
     rot_vector_setAll(V, 3, 0, 0);
     legs[0] = new CLeg(&servoArray[0], &P, V);
@@ -51,6 +59,14 @@ void CQPed::reset(){
     rot_vector_setAll(V, -3, 0, 0);
     P.B = 5;
     legs[1] = new CLeg(&servoArray[3], &P, V);
+
+    rot_vector_setAll(V, 3, 0, 0);
+    P.B = 6.5;    
+    legs[2] = new CLeg(&servoArray[6], &P, V);
+
+    rot_vector_setAll(V, -3, 0, 0);
+    P.B = 5;
+    legs[3] = new CLeg(&servoArray[9], &P, V);
     
     //rotation matrix
     mainBodyAngles = rot_vector_alloc();
@@ -155,6 +171,7 @@ int CQPed::moveByStick(){
         }
     }else{
     //move legs per stick
+    //TODO update for 4 legs (controlscheme with shapes?)
         //Rx
         temp = pscon.getRx();
         if(abs(temp) > QP_CONTROLLER_TRESHOLD){
@@ -249,29 +266,32 @@ int CQPed::changeSingleLeg(uint8_t leg, double X, double Y, double Z){
 }
 
 int CQPed::changeAllLegs(double X, double Y, double Z){
-    rot_vector_setAll(V, X, Y, Z);
-    rot_matrix_dot_vector(inverseR, V,V);
-    legs[0]->relativeMoveEndPoint(V);
-    rot_vector_setAll(V, X, Y, Z);
-    rot_matrix_dot_vector(inverseR, V,V);
-    legs[1]->relativeMoveEndPoint(V);
-    int success = 0;
     char i;
+    rot_vector_setAll(V, X, Y, Z);
+    rot_matrix_dot_vector(inverseR, V,V);
+    for(i=0;i<QP_LEGS;i++) legs[i]->relativeMoveEndPoint(V);
+    int success = 0;
     for(i=0;i<QP_LEGS;i++) success += legs[i]->readyFlag;
     if(success == QP_LEGS) {
         for(i=0;i<QP_LEGS;i++) legs[i]->commit(); 
         return 0;
     }else{    
+        printf("fail %i\n", success);;
         return 1;
     }
 }
 
 void CQPed::printPos(){
-    printf("x0 = % .2g\ny0 = % .2g\nx1 = % .2g\ny1 = % .2g\n",
-    getRelativeServoX(0, LEG_ENDPOINT),
-    getRelativeServoY(0, LEG_ENDPOINT),
-    getRelativeServoX(1, LEG_ENDPOINT),
-    getRelativeServoY(1, LEG_ENDPOINT));
+    char i;
+    printf("leg endpoints:\n");
+    for(i=0;i<QP_LEGS;i++){
+        printf("x%d = % .2g\ny%d = % .2g\nz%d = % .2g\n",
+            i, getRelativeServoX(i, LEG_ENDPOINT),
+            i, getRelativeServoY(i, LEG_ENDPOINT),
+            i, getRelativeServoZ(i, LEG_ENDPOINT)
+        );
+        
+    }
 }
 
 

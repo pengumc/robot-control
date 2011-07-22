@@ -453,7 +453,6 @@ void drawLeg(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double sta
 
 void drawLeg_around_0(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY){
     CGtk* gui = ((CGtk*)data);    
-    cairo_set_source_rgb(cr, 0,0, 0.9);
     double x = startX;
     double y = startY;
     //0 -> servo 0
@@ -506,6 +505,7 @@ static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     //clear area
     cairo_set_source_rgb(cr,BG_COLOR,BG_COLOR,BG_COLOR);
     cairo_paint(cr);
+    cairo_set_source_rgb(cr, 0,0, 0.9);
     drawLeg_around_0(cr,data, 0, alloc.width/2, alloc.height/2);
     drawLeg_around_0(cr,data, 1, alloc.width/2, alloc.height/2);  
     
