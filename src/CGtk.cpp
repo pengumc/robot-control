@@ -242,8 +242,8 @@ static gboolean timeout1(gpointer data){
     if(gui->running == 0) return FALSE;
     gui->qp->getUsbData();
     gui->qp->fillPSController();
-    gui->qp->fillADC();
-    gui->updateADC();
+//    gui->qp->fillADC();
+//    gui->updateADC();
     gui->updateGamePadDrawing();
     if(gui->qp->moveByStick()){
         gui->qp->sendToDev();
