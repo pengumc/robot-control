@@ -10,7 +10,7 @@
 //label formats, keep arguments constant, or change the code
 #define GUI_SERVO_LABEL_FORMAT "<b>%d</b>: angle <span foreground=\"blue\">% .2g</span> | pw <span color=\"red\">%d</span> "
 #define GUI_POSITION_LABEL_FORMAT "X: % .3g\nY: % .3g\nZ:% .3g"
-
+#define GUI_ADC_LABEL_FORMAT "X: %d | % .4g\nY: %d | % .4g"
 #define GUI_DRAW_SCALE 9.0
 #define GUI_LINEWIDTH 4
 
@@ -36,6 +36,7 @@ class CGtk{
         void updateServoData();
         void updatePositions();
         void updateGamePadDrawing();
+        void updateADC();
     private:
         GtkWidget *window;
         GtkWidget *vbox_main;        
@@ -49,6 +50,7 @@ class CGtk{
         GtkWidget *button_leg;
 	    GtkWidget *servo_label[SERVOS];
         GtkWidget *position_label[QP_LEGS];
+        GtkWidget *adc_label;
         GtkWidget *da; ///drawing area
         CQPed *qp;
         void show_disconnected();

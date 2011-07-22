@@ -1,5 +1,21 @@
 #include "robot-control/CQPed.h"
 
+
+void stepKalman(struct KALMAN *kal, KALMAN_TYPE measurement){
+  KALMAN_TYPE P_temp, K, x_temp;
+    //predict
+    x_temp = kal->x_last;
+    P_temp = kal->P_last + kal->Sw; //Q
+    //update
+    K = (1/(P_temp + kal->Sz)) * P_temp; //R
+    kal->x = x_temp + K * (measurement - x_temp);
+    kal->P = (1 - K) * P_temp;
+    //save previous states
+    kal->x_last = kal->x;
+    kal->P_last = kal->P;
+  
+}
+
 /** Most default values are hardcoded into this function.
 */
 
@@ -17,6 +33,14 @@ void CQPed::reset(){
     servoArray[4].flipDirection();
     servoArray[5].offset = -(PI/2);
     servoArray[5].setAngle(-PI/2);
+    //second set
+    servoArray[8].offset = -(PI/2);
+    servoArray[8].flipDirection();
+    servoArray[8].setAngle(-PI/2);
+    servoArray[9].mirrorZ();
+    servoArray[10].flipDirection();
+    servoArray[11].offset = -(PI/2);
+    servoArray[11].setAngle(-PI/2);
     //print start states
     for(i=0;i<QP_SERVOS/2;i++)  {
         printf("servo %d:\n",i);
@@ -27,7 +51,7 @@ void CQPed::reset(){
     P.A = 3;
     P.B = 6.5;
     P.C = 5.5;
-    V = rot_vector_alloc();
+    V = rot_vector_alloc(); //general purpose vector
 
     rot_vector_setAll(V, 3, 0, 0);
     legs[0] = new CLeg(&servoArray[0], &P, V);
@@ -35,6 +59,14 @@ void CQPed::reset(){
     rot_vector_setAll(V, -3, 0, 0);
     P.B = 5;
     legs[1] = new CLeg(&servoArray[3], &P, V);
+
+    rot_vector_setAll(V, 3, 0, 0);
+    P.B = 6.5;    
+    legs[2] = new CLeg(&servoArray[6], &P, V);
+
+    rot_vector_setAll(V, -3, 0, 0);
+    P.B = 5;
+    legs[3] = new CLeg(&servoArray[9], &P, V);
     
     //rotation matrix
     mainBodyAngles = rot_vector_alloc();
@@ -43,6 +75,15 @@ void CQPed::reset(){
     inverseR = rot_matrix_alloc();
     changeMainBodyAngle(0,0,0);
     rot_matrix_print(mainBodyR);
+
+    //kalman
+    acc_mid[0] = 128;
+    acc_mid[1] = 128;
+	filterX.Sz = 0.5;
+	filterX.Sw = 0.01;
+	filterY.Sz = 0.5;
+	filterY.Sw = 0.01;
+
 }
 
 CQPed::~CQPed(){
@@ -76,6 +117,7 @@ void CQPed::getAbsolutePos(rot_vector_t *returnVector, uint8_t leg, uint8_t poin
     rot_matrix_dot_vector(mainBodyR, V, returnVector);
 }
 
+//0 on success
 int CQPed::changeMainBodyAngle(double xaxis, double yaxis, double zaxis){
     //TODO rollback
     rot_vector_setAll(tempAngles, xaxis, yaxis, zaxis);
@@ -129,6 +171,7 @@ int CQPed::moveByStick(){
         }
     }else{
     //move legs per stick
+    //TODO update for 4 legs (controlscheme with shapes?)
         //Rx
         temp = pscon.getRx();
         if(abs(temp) > QP_CONTROLLER_TRESHOLD){
@@ -157,9 +200,12 @@ int CQPed::moveByStick(){
     
     return trigger;    
 }
+int CQPed::getUsbData(){
+    return usb.getData();
+}
 
 void CQPed::fillPSController(){
-    if(usb.getData()){
+    if(usb.connected>0){
         pscon.setData(
             usb.PSControllerDataBuffer[1],
             usb.PSControllerDataBuffer[2],
@@ -169,6 +215,20 @@ void CQPed::fillPSController(){
             usb.PSControllerDataBuffer[8]
         );
     }
+}
+
+void CQPed::fillADC(){
+	//filters
+	adc[0] = usb.PSControllerDataBuffer[3];
+	adc[1] = usb.PSControllerDataBuffer[4];
+	stepKalman(&filterX, ((double)adc[0])-acc_mid[0] );
+	stepKalman(&filterY, ((double)adc[1])-acc_mid[1] );
+    double phi = asin(filterX.x/30);
+    rot_vector_setAll(V, 0,0,phi);
+    rot_vector_minus(V, mainBodyAngles);
+    if(changeMainBodyAngle(V[0],V[1],V[2])==0);
+    sendToDev();
+//    printf("adc: %d, %d\n", adc[0], adc[1]);
 }
 
 int8_t CQPed::getConnected(){
@@ -206,29 +266,32 @@ int CQPed::changeSingleLeg(uint8_t leg, double X, double Y, double Z){
 }
 
 int CQPed::changeAllLegs(double X, double Y, double Z){
-    rot_vector_setAll(V, X, Y, Z);
-    rot_matrix_dot_vector(inverseR, V,V);
-    legs[0]->relativeMoveEndPoint(V);
-    rot_vector_setAll(V, X, Y, Z);
-    rot_matrix_dot_vector(inverseR, V,V);
-    legs[1]->relativeMoveEndPoint(V);
-    int success = 0;
     char i;
+    rot_vector_setAll(V, X, Y, Z);
+    rot_matrix_dot_vector(inverseR, V,V);
+    for(i=0;i<QP_LEGS;i++) legs[i]->relativeMoveEndPoint(V);
+    int success = 0;
     for(i=0;i<QP_LEGS;i++) success += legs[i]->readyFlag;
     if(success == QP_LEGS) {
         for(i=0;i<QP_LEGS;i++) legs[i]->commit(); 
         return 0;
     }else{    
+        printf("fail %i\n", success);;
         return 1;
     }
 }
 
 void CQPed::printPos(){
-    printf("x0 = % .2g\ny0 = % .2g\nx1 = % .2g\ny1 = % .2g\n",
-    getRelativeServoX(0, LEG_ENDPOINT),
-    getRelativeServoY(0, LEG_ENDPOINT),
-    getRelativeServoX(1, LEG_ENDPOINT),
-    getRelativeServoY(1, LEG_ENDPOINT));
+    char i;
+    printf("leg endpoints:\n");
+    for(i=0;i<QP_LEGS;i++){
+        printf("x%d = % .2g\ny%d = % .2g\nz%d = % .2g\n",
+            i, getRelativeServoX(i, LEG_ENDPOINT),
+            i, getRelativeServoY(i, LEG_ENDPOINT),
+            i, getRelativeServoZ(i, LEG_ENDPOINT)
+        );
+        
+    }
 }
 
 

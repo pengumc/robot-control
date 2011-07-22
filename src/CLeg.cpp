@@ -12,6 +12,7 @@ CLeg::CLeg(CServo2 *servoSubSet, solverParams2_t *lengths, rot_vector_t *COBOffs
     char i;
     for(i=0;i<LEG_DOF;i++) servoPos[i] = rot_vector_alloc();
     endPoint = rot_vector_alloc();
+    V = rot_vector_alloc();
     ///set offset
     rot_vector_set(servoPos[0], 0, COBOffset[0]);
     rot_vector_set(servoPos[0], 1, COBOffset[1]);    
@@ -27,6 +28,7 @@ CLeg::~CLeg(){
     char i;
     for(i=0;i<LEG_DOF;i++) rot_free(servoPos[i]);
     rot_free(endPoint);
+    rot_free(V);
 }
 
 void CLeg::fillWithPos(rot_vector_t *v, uint8_t point){
@@ -61,15 +63,17 @@ int CLeg::calcAndTest(rot_vector_t *v){
 
 
 int CLeg::relativeMoveEndPoint(rot_vector_t *v){
-    rot_vector_add(v, endPoint);
-    rot_vector_minus(v, servoPos[0]);
-    return calcAndTest(v);
+    rot_vector_copy(v,V);
+    rot_vector_add(V, endPoint);
+    rot_vector_minus(V, servoPos[0]);
+    return calcAndTest(V);
 }
 
 //takes v relative to COB
 int CLeg::setEndPoint(rot_vector_t *v){
-    rot_vector_minus(v, servoPos[0]);
-    return calcAndTest(v);
+    rot_vector_copy(v,V);
+    rot_vector_minus(V, servoPos[0]);
+    return calcAndTest(V);
 }
 
 int CLeg::testAngles(){
