@@ -56,8 +56,8 @@ int CLeg::calcAndTest(rot_vector_t *v){
     if (solveFor() ==0){    //solve and store in resultVector
         if (testAngles()==0){       //test angles from resultVector
             return 0;
-        }
-    }
+        }//else printf("angle test failed\n");
+    }//else printf("solve failed\n");
     return -1;
 }
 

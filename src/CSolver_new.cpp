@@ -65,13 +65,13 @@ int CSolver2::solveFor(){
     //setup beta
     double beta = 0.01;
     if(p.Y < p.C) beta *= -1.0;
-    if(p.X < 0)   beta *= -1.0;
+    //if(p.B < p.C)   beta *= -1.0;
     gsl_vector_set(x, 0, beta);
     //calculate alpha, and set new X
     rot_vector_set(resultVector, 0, getAlphaFromZ());
 //    printParams();
 //    printf("beta guess: %.4g\n", gsl_vector_get(x,0));
-    gsl_vector_set(x, 1,0);
+    gsl_vector_set(x, 1,-M_PI/2);
     f = {&_trig_f2, n, &p};
     gsl_multiroot_fsolver_set(s, &f, x);
     int iter =0;

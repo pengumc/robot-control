@@ -59,10 +59,17 @@ double CServo2::pulsewidthToAngle(int8_t s){
 
 
 uint8_t CServo2::isValid(double s){
-    return angle.isBetween(
+    uint8_t i =  angle.isBetween(
         pulsewidthToAngle(minPulse),
         pulsewidthToAngle(maxPulse),
         s);
+/*    if(i==1) printf("pass\n");
+    else {
+        printf("fail % .3g\n", s);
+        printDetails();
+    }
+*/    return i;
+        
 }
 
 void CServo2::setAngle(double s){

@@ -1,5 +1,5 @@
-Version 0.4 almost 0.5
-XYZ/rotanional control for 2 connected 3DOF legs with gtk gui
+Version 0.6 (yes we skipped one)
+XYZ/rotanional control for 4 connected 3DOF legs with gtk gui
   .___.X.___.
 ./           \.
 |             |
@@ -12,6 +12,7 @@ keyboard:
  'q' : disconnect timeout routine, resulting in no more controller polling.
  wasd : change both leg endPoints (up left down right)
  WASD : change single leg endPoint (leg dictated by the button with the arrow on it, click to switch)
+ tfgh : rotate main body around z axis (tg) or y axis (fh)
  '`' : reset and reconnect usb.
  any key will refresh the actual servo positions stored in the device.
 controller:
@@ -23,7 +24,7 @@ controller:
 
 
 GUI
-some visualization has bee added.
+some visualization has been added.
 
 NOTES:
 ----------------------------------
@@ -57,4 +58,17 @@ changes in 0.4:
 
 changes in 0.5:
 -development files have been organized
+-most/all positional information stored in vectors
+-rotational matrix implemented
+-expanded control scheme
+-added accelerometer, discontinued for now
+-added kalman filter, discontinued for now
+
+
+changes in 0.6
+-fixed massive bugs in solver, I can't believe it actually worked aas long as it did
+-added two more legs
+-changed servo layout due to rebuild of physical quadruped
+
+
 

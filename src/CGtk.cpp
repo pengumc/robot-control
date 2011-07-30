@@ -210,6 +210,14 @@ static gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer 
         if(gui->qp->changeMainBodyAngle(0,0,-GUI_KEYBOARD_SPEED/10)==0)
         gui->qp->sendToDev();
         break;
+    case 'z':
+        if(gui->qp->changeAllLegs(0,0,-GUI_KEYBOARD_SPEED)==0)
+        gui->qp->sendToDev();
+        break;
+    case 'x':
+        if(gui->qp->changeAllLegs(0,0,GUI_KEYBOARD_SPEED)==0)
+        gui->qp->sendToDev();
+        break;
     }
     usleep(10000);//allow device to transmit before next command;
     gui->updateServoData();
@@ -507,7 +515,10 @@ static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     cairo_paint(cr);
     cairo_set_source_rgb(cr, 0,0, 0.9);
     drawLeg_around_0(cr,data, 0, alloc.width/2, alloc.height/2);
-    drawLeg_around_0(cr,data, 1, alloc.width/2, alloc.height/2);  
+    drawLeg_around_0(cr,data, 1, alloc.width/2, alloc.height/2);
+    cairo_set_source_rgb(cr, 1,0,0);  
+    drawLeg_around_0(cr,data, 2, alloc.width/2, alloc.height/2);
+    drawLeg_around_0(cr,data, 3, alloc.width/2, alloc.height/2);
     
     //draw line through both endPoints
     cairo_set_source_rgb(cr,1,0,0);    
