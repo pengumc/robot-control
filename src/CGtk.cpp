@@ -513,12 +513,12 @@ static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     //clear area
     cairo_set_source_rgb(cr,BG_COLOR,BG_COLOR,BG_COLOR);
     cairo_paint(cr);
-    cairo_set_source_rgb(cr, 0,0, 0.9);
-    drawLeg_around_0(cr,data, 0, alloc.width/2, alloc.height/2);
-    drawLeg_around_0(cr,data, 1, alloc.width/2, alloc.height/2);
     cairo_set_source_rgb(cr, 1,0,0);  
     drawLeg_around_0(cr,data, 2, alloc.width/2, alloc.height/2);
     drawLeg_around_0(cr,data, 3, alloc.width/2, alloc.height/2);
+    cairo_set_source_rgb(cr, 0,0, 0.9);
+    drawLeg_around_0(cr,data, 0, alloc.width/2, alloc.height/2);
+    drawLeg_around_0(cr,data, 1, alloc.width/2, alloc.height/2);
     
     //draw line through both endPoints
     cairo_set_source_rgb(cr,1,0,0);    

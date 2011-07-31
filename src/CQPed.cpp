@@ -196,8 +196,7 @@ int CQPed::moveByStick(){
     switch(mode){
     case 0:
         //move legs together R = xz plane
-        //Ly = y
-        //Rx
+        //in mode 0, dpad is rotation of main body
         temp = pscon.getRx();
         if(abs(temp) > QP_CONTROLLER_TRESHOLD){
             trigger = 1;
@@ -214,6 +213,28 @@ int CQPed::moveByStick(){
         if(abs(temp) > QP_CONTROLLER_TRESHOLD){
             trigger = 1;
             changeAllLegs(0,((float)temp)*QP_STICK_SPEED,0);
+        }
+        //rotation, dpad
+        if(pscon.getSSDpad(UP)) {
+            trigger = 1;
+            changeMainBodyAngle(0,0,QP_BUTTON_SPEED);
+        }
+        if(pscon.getSSDpad(DOWN)) {
+            trigger = 1;
+            changeMainBodyAngle(0,0,-QP_BUTTON_SPEED);
+        }
+        if(pscon.getSSDpad(LEFT)) {
+            trigger = 1;
+            changeMainBodyAngle(0,QP_BUTTON_SPEED,0);
+        }
+        if(pscon.getSSDpad(RIGHT)) {
+            trigger = 1;
+            changeMainBodyAngle(0,-QP_BUTTON_SPEED,0);
+        }
+        //reset
+        if(pscon.getSSDpad(START)){
+            trigger = 1;
+            reset();
         }
         break;
     default:
@@ -239,61 +260,8 @@ int CQPed::moveByStick(){
         }
 
         break;    
-    
     }
     
-    /* old
-    if(!pscon.getShoulderShapes(R1)){
-        //move legs together R = xz plane
-        //Ly = y
-        //Rx
-        temp = pscon.getRx();
-        if(abs(temp) > QP_CONTROLLER_TRESHOLD){
-            trigger = 1;
-            changeAllLegs(-((float)temp)*QP_STICK_SPEED, 0, 0);
-        }
-        //Ry
-        temp = pscon.getRy();
-        if(abs(temp) > QP_CONTROLLER_TRESHOLD){
-            trigger = 1;
-            changeAllLegs(0, 0,((float)temp)*QP_STICK_SPEED);
-        }
-        //Ly
-        temp = pscon.getLy();
-        if(abs(temp) > QP_CONTROLLER_TRESHOLD){
-            trigger = 1;
-            changeAllLegs(0,((float)temp)*QP_STICK_SPEED,0);
-        }
-        
-    }else{
-        //move legs per stick
-        //TODO update for 4 legs (controlscheme with shapes?)
-        //Rx
-        temp = pscon.getRx();
-        if(abs(temp) > QP_CONTROLLER_TRESHOLD){
-            trigger = 1;
-            changeSingleLeg(0, -((float)temp)*QP_STICK_SPEED, 0, 0);
-        }
-        //Ry
-        temp = pscon.getRy();
-        if(abs(temp) > QP_CONTROLLER_TRESHOLD){
-            trigger = 1;
-            changeSingleLeg(0, 0, ((float)temp)*QP_STICK_SPEED, 0);
-        }
-        //Lx
-        temp = pscon.getLx();
-        if(abs(temp) > QP_CONTROLLER_TRESHOLD){
-            trigger = 1;
-            changeSingleLeg(1, -((float)temp)*QP_STICK_SPEED, 0, 0);
-        }
-        //Ly
-        temp = pscon.getLy();
-        if(abs(temp) > QP_CONTROLLER_TRESHOLD){
-            trigger = 1;
-            changeSingleLeg(1, 0, ((float)temp)*QP_STICK_SPEED, 0);
-        }
-    }
-    */
     return trigger;    
 }
 int CQPed::getUsbData(){
