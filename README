@@ -25,8 +25,10 @@ controller:
   L1 = leg 2
   R2 = leg 3
   L2 = leg 4
- Dpad: same as tfgh (does not work 
+ Dpad: same as tfgh
+ Dpad with X held: rotate along x axis
  start: reset
+ select: step through sequence
  triangle: set analog mode for controller (red led on the controller)
 
 

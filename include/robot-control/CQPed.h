@@ -44,6 +44,7 @@ class CQPed{
         int changeAllLegs(double X, double Y, double Z);
         int changeSingleLeg(uint8_t leg,double X, double Y, double Z);
         int moveSingleLegTo(uint8_t leg,double X, double Y, double Z);
+
         
         //get servo locations
         double getRelativeServoX(uint8_t leg, uint8_t servo);
@@ -72,6 +73,7 @@ class CQPed{
         double getAngle(uint8_t servo);
         uint8_t getPW(uint8_t servo);
         int moveByStick();
+        int sequence();
         //TODO privatize
         CLeg *legs[QP_LEGS];
         
@@ -95,6 +97,8 @@ class CQPed{
         rot_matrix_t *mainBodyR;
         rot_matrix_t *inverseR;
         void flipTemp();
+        uint8_t seq_index;
+        uint8_t seq_dir;
         
         
 };

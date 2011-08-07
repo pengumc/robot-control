@@ -38,12 +38,15 @@ CGtk::CGtk(CQPed *Q){
         sprintf(text, GUI_SERVO_LABEL_FORMAT, i,0.0,0);
         servo_label[i] = gtk_label_new(NULL); //gtk_check_button_new_with_label(text);
         gtk_label_set_markup(GTK_LABEL(servo_label[i]), text);
-        gtk_box_pack_start(GTK_BOX(vbox_left), servo_label[i],TRUE,TRUE,0);
+        gtk_box_pack_start(GTK_BOX(vbox_left), servo_label[i],FALSE,TRUE,0);
     }
     //mid
     da = gtk_drawing_area_new();
-    gtk_widget_set_size_request(da, 300,-1);
-    gtk_box_pack_start(GTK_BOX(vbox_mid),da,TRUE,TRUE,0);
+    gtk_widget_set_size_request(da, GUI_DA_SIZE,GUI_DA_SIZE-100);
+    gtk_box_pack_start(GTK_BOX(vbox_mid),da,FALSE,TRUE,0);
+    topDa = gtk_drawing_area_new();
+    gtk_widget_set_size_request(topDa,GUI_DA_SIZE,GUI_DA_SIZE);
+    gtk_box_pack_start(GTK_BOX(vbox_mid),topDa, FALSE, TRUE, 0);
     //right
     for(i=0;i<QP_LEGS;i++){
         sprintf(text, "X%d Y%d Z%d",i,i,i);
@@ -54,7 +57,7 @@ CGtk::CGtk(CQPed *Q){
     gtk_box_pack_start(GTK_BOX(vbox_right), adc_label, TRUE, TRUE, 0);
     //gamepad drawing
     gamepadDrawing = gtk_drawing_area_new();
-    gtk_box_pack_start(GTK_BOX(vbox_main), gamepadDrawing, TRUE, TRUE,0);
+    gtk_box_pack_start(GTK_BOX(vbox_main), gamepadDrawing, FALSE, FALSE,0);
     gtk_widget_set_size_request(gamepadDrawing, -1, 150);
     //add main container to window
     gtk_container_add(GTK_CONTAINER(window), vbox_main);
@@ -67,6 +70,7 @@ CGtk::CGtk(CQPed *Q){
     g_signal_connect(G_OBJECT(da), "expose_event", G_CALLBACK(paint), (gpointer)this);
     g_signal_connect(G_OBJECT(gamepadDrawing),
          "expose_event", G_CALLBACK(paintGP), (gpointer)this);    
+    g_signal_connect(G_OBJECT(topDa), "expose_event", G_CALLBACK(paintTop), (gpointer)this);
     gtk_widget_show_all(window);
     qp = Q;
 }
@@ -260,7 +264,8 @@ static gboolean timeout1(gpointer data){
 
     }
     gui->updatePositions();    
-        paint(gui->da, NULL, gui);
+    paint(gui->da, NULL, gui);
+    paintTop(gui->topDa, NULL, gui);
     
     if(gui->qp->getConnected()>1) gui->show_connected();
     else gui->show_disconnected();
@@ -503,6 +508,9 @@ void drawLineThrough(cairo_t *cr, double x1, double y1, double x2, double y2){
     cairo_stroke(cr);
 }
 
+//--------------------------
+// PAINT QUADRUPED SIDEVIEW
+//--------------------------
 static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     CGtk* gui = ((CGtk*)data);
     GtkAllocation alloc;
@@ -510,23 +518,28 @@ static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     cairo_t *cr;
     cr = gdk_cairo_create(widget->window);
     cairo_set_line_width(cr,GUI_LINEWIDTH);
+    double startX = alloc.width/2;
+    double startY = 100;
     //clear area
     cairo_set_source_rgb(cr,BG_COLOR,BG_COLOR,BG_COLOR);
     cairo_paint(cr);
+
+    //draw side view
+    cairo_set_line_width(cr, 0.7);
     cairo_set_source_rgb(cr, 1,0,0);  
-    drawLeg_around_0(cr,data, 2, alloc.width/2, alloc.height/2);
-    drawLeg_around_0(cr,data, 3, alloc.width/2, alloc.height/2);
+    drawLeg_around_0(cr,data, 2, startX, startY);
+    drawLeg_around_0(cr,data, 3, alloc.width/2, startY);
     cairo_set_source_rgb(cr, 0,0, 0.9);
-    drawLeg_around_0(cr,data, 0, alloc.width/2, alloc.height/2);
-    drawLeg_around_0(cr,data, 1, alloc.width/2, alloc.height/2);
+    drawLeg_around_0(cr,data, 0, alloc.width/2, startY);
+    drawLeg_around_0(cr,data, 1, alloc.width/2, startY);
     
     //draw line through both endPoints
     cairo_set_source_rgb(cr,1,0,0);    
     drawLineThrough(cr,
         alloc.width/2 +  gui->qp->legs[1]->getX(3) * GUI_DRAW_SCALE,
-        alloc.height/2 - gui->qp->legs[1]->getY(3) * GUI_DRAW_SCALE,
+        startY - gui->qp->legs[1]->getY(3) * GUI_DRAW_SCALE,
         alloc.width/2 +  gui->qp->legs[0]->getX(3) * GUI_DRAW_SCALE,
-        alloc.height/2 - gui->qp->legs[0]->getY(3) * GUI_DRAW_SCALE
+        startY - gui->qp->legs[0]->getY(3) * GUI_DRAW_SCALE
     );
     //line thourgh main body
     cairo_set_source_rgb(cr,0,0,0);    
@@ -534,13 +547,107 @@ static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     
     drawLineThrough(cr,
         alloc.width/2 +  gui->qp->legs[1]->getX(0) * GUI_DRAW_SCALE,
-        alloc.height/2 - gui->qp->legs[1]->getY(0) * GUI_DRAW_SCALE,
+        startY - gui->qp->legs[1]->getY(0) * GUI_DRAW_SCALE,
         alloc.width/2 +  gui->qp->legs[0]->getX(0) * GUI_DRAW_SCALE,
-        alloc.height/2 - gui->qp->legs[0]->getY(0) * GUI_DRAW_SCALE
+        startY - gui->qp->legs[0]->getY(0) * GUI_DRAW_SCALE
     );
     
     cairo_destroy(cr);
     return;
 }
+
+//-----------------
+// PAINT SIDE VIEW
+//-----------------
+static void paintTop(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
+    CGtk* gui = ((CGtk*)data);
+    GtkAllocation alloc;
+    gtk_widget_get_allocation(widget, &alloc);
+    cairo_t *cr;
+    cr = gdk_cairo_create(widget->window);
+    cairo_set_line_width(cr,GUI_LINEWIDTH);
+    double startX = alloc.width/2;
+    double startY = alloc.height/2;
+    //clear area
+    cairo_set_source_rgb(cr,BG_COLOR,BG_COLOR,BG_COLOR);
+    cairo_paint(cr);
+    //draw legs
+    cairo_set_line_width(cr, 0.5);
+
+    cairo_set_source_rgb(cr, 0,0,1); 
+    drawLegTop(cr, data, 0, startX, startY);
+    drawLegTop(cr, data, 1, startX, startY);
+    cairo_set_source_rgb(cr, 1,0,0); 
+    drawLegTop(cr, data, 2, startX, startY);
+    drawLegTop(cr, data, 3, startX, startY);
+    
+    //draw triangles
+    cairo_set_source_rgb(cr, 0,0.8,0);
+    cairo_set_line_width(cr, 0.7);
+    drawLineThrough(cr, 
+        startX + gui->qp->legs[0]->getX(3) * GUI_DRAW_SCALE,
+        startY - gui->qp->legs[0]->getZ(3) * GUI_DRAW_SCALE,
+        startX + gui->qp->legs[3]->getX(3) * GUI_DRAW_SCALE,
+        startY - gui->qp->legs[3]->getZ(3) * GUI_DRAW_SCALE
+    );
+    drawLineThrough(cr, 
+        startX + gui->qp->legs[1]->getX(3) * GUI_DRAW_SCALE,
+        startY - gui->qp->legs[1]->getZ(3) * GUI_DRAW_SCALE,
+        startX + gui->qp->legs[2]->getX(3) * GUI_DRAW_SCALE,
+        startY - gui->qp->legs[2]->getZ(3) * GUI_DRAW_SCALE
+    );
+        
+    
+    cairo_set_source_rgb(cr, 0,0,0); 
+    drawCross(cr, startX, startY);
+
+}
+
+void drawCross(cairo_t *cr, double x, double y){
+    //assume color is set
+    cairo_move_to(cr, 0, y);
+    cairo_rel_line_to(cr, GUI_DA_SIZE,0);
+    cairo_move_to(cr,x, 0);
+    cairo_rel_line_to(cr, 0, GUI_DA_SIZE);
+    cairo_stroke(cr);
+
+}
+
+//------------------
+// DRAW TOPDOWN LEG
+//------------------
+void drawLegTop(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY){
+    CGtk* gui = ((CGtk*)data);    
+    double x = startX;
+    double y = startY;
+    //0 -> servo 0
+    cairo_move_to(cr, x,y);
+    x +=( gui->qp->legs[leg]->getX(0) )*GUI_DRAW_SCALE; 
+    y -=( gui->qp->legs[leg]->getZ(0) )*GUI_DRAW_SCALE; 
+    cairo_line_to(cr, x,y);
+    //servo 0 -> servo 1
+    cairo_rectangle(cr, x-5, y-5, 10, 10);
+    cairo_move_to(cr, x,y);
+    x +=( gui->qp->legs[leg]->getX(1) -gui->qp->legs[leg]->getX(0) )*GUI_DRAW_SCALE; 
+    y -=( gui->qp->legs[leg]->getZ(1) -gui->qp->legs[leg]->getZ(0) )*GUI_DRAW_SCALE; 
+    cairo_line_to(cr, x,y);
+    //servo 1 -> servo 2    
+    cairo_rectangle(cr, x-5, y-5, 10, 10);
+    cairo_move_to(cr, x,y);
+    x +=( gui->qp->legs[leg]->getX(2) -gui->qp->legs[leg]->getX(1) )*GUI_DRAW_SCALE; 
+    y -=( gui->qp->legs[leg]->getZ(2) -gui->qp->legs[leg]->getZ(1) )*GUI_DRAW_SCALE; 
+    cairo_line_to(cr, x,y);
+    //servo 2 -> endPoint
+    cairo_rectangle(cr, x-5, y-5, 10, 10);
+    cairo_move_to(cr, x,y);
+    x +=( gui->qp->legs[leg]->getX(3) -gui->qp->legs[leg]->getX(2) )*GUI_DRAW_SCALE; 
+    y -=( gui->qp->legs[leg]->getZ(3) -gui->qp->legs[leg]->getZ(2) )*GUI_DRAW_SCALE; 
+    cairo_line_to(cr, x,y);
+    drawCross(cr, x,y);
+    cairo_rectangle(cr, x-5, y-5, 10, 10);
+    cairo_stroke(cr);
+
+}
+
 
 

@@ -21,6 +21,8 @@ void stepKalman(struct KALMAN *kal, KALMAN_TYPE measurement){
 
 void CQPed::reset(){
     usb.connect();
+    seq_index=1;
+    seq_dir = 0;
     char i;
     for (i=0;i<BUFLEN_SERVO_DATA;i++){
         servoArray[i].reset();
@@ -184,6 +186,9 @@ void CQPed::getMainBodyRotation(rot_vector_t *returnVector){
     rot_vector_copy(mainBodyAngles, returnVector);
 }
 
+//------------------
+// CONTROLLER INPUT
+//------------------
 ///returns 0 if nothing was done, 1 otherwise
 int CQPed::moveByStick(){
     //assume pcscon is filled with valid data
@@ -194,6 +199,7 @@ int CQPed::moveByStick(){
     if(pscon.getShoulderShapes(R2) && mode == 0) mode = 3;
     if(pscon.getShoulderShapes(L1) && mode == 0) mode = 2;
     if(pscon.getShoulderShapes(L2) && mode == 0) mode = 4;
+    if(pscon.getShoulderShapes(CROSS) && mode == 0) mode = 5;
     
     switch(mode){
     case 0:
@@ -238,7 +244,29 @@ int CQPed::moveByStick(){
             trigger = 1;
             reset();
         }
+        //sequence
+        if(pscon.getSSDpad(SELECT)){
+            trigger = 1;
+            sequence();
+        }
+        //switch dir
+        if(pscon.getShoulderShapes(SQUARE)){
+            trigger=1;
+            seq_dir ^= 1;
+            printf("seq_dir switched to %x\n",seq_dir);
+        }
         break;
+    case 5:
+        //rotate around x with up/down
+        if(pscon.getSSDpad(UP)){
+            trigger = 1;
+            changeMainBodyAngle(-QP_BUTTON_SPEED,0,0);
+        }
+        if(pscon.getSSDpad(DOWN)){
+            trigger = 1;
+            changeMainBodyAngle(QP_BUTTON_SPEED,0,0);
+        }
+        break;        
     default:
         //shoulder buttons designate leg
         //all movement *-1 to prevent confusion
@@ -328,7 +356,10 @@ int CQPed::changeSingleLeg(uint8_t leg, double X, double Y, double Z){
     rot_vector_setAll(V, X, Y, Z);
     rot_matrix_dot_vector(inverseR, V,V);
     legs[leg]->relativeMoveEndPoint(V);        
-    if(legs[leg]->readyFlag) legs[leg]->commit();
+    if(legs[leg]->readyFlag){
+        legs[leg]->commit();
+        return 0;
+    } else return -1;
 }
 
 int CQPed::changeAllLegs(double X, double Y, double Z){
@@ -381,4 +412,65 @@ void CQPed::sendToDev(){
 void CQPed::readFromDev(){
     usb.readServoData(servoArray);
 }
+
+//------------
+// SEQUENCE
+//------------
+int CQPed::sequence(){
+    //leg 0 up->+z->down
+    double stride = 5;
+    double clearance = 4;
+    double sway = 3;
+    if(seq_dir == 1) {
+        clearance *= -1.0;
+        stride *= -1.0;
+        sway *= -1.0;
+    }
+    #define SSPEED 3
+    uint8_t seq_length = SSPEED*3+1;
+    int result = 0;
+    uint8_t leg = seq_index / seq_length;
+    //ranzige leg order fix
+    switch(leg){
+    case 1:
+        leg=3;
+        break;
+    case 2:
+        leg=1;
+        break;
+    case 3:
+        leg=2;
+        break;
+    }        
+//    printf("leg = %d\n",leg);
+    legs[leg]->fillWithPos(V,0);
+    
+//    printf("seq_index= %d\n",seq_index);
+    //actual sequence      
+    switch(seq_index%seq_length){
+    case SSPEED:
+        if(changeAllLegs(rot_vector_get(V,0)/sway, 0, rot_vector_get(V,2)/sway)==0)
+            result = changeSingleLeg(leg, 0,clearance,0);  
+        else result =-1;
+        break;
+    case SSPEED*2:
+        result = changeSingleLeg(leg, 0,0,stride);
+        break;
+    case SSPEED*3:
+        if (changeAllLegs(-rot_vector_get(V,0)/sway, 0, -rot_vector_get(V,2)/sway) ==0)
+            result = changeSingleLeg(leg, 0,-clearance,0);
+        else result =-1;
+        break;
+    }
+    if (result == 0 ) {
+        if(seq_dir == 0 ) seq_index++;
+        else seq_index--;
+        result = changeAllLegs(0,0,-stride/(seq_length*QP_LEGS));
+    }
+    if(seq_index/seq_length == QP_LEGS && seq_dir == 0) seq_index = 0;
+    if(seq_index == 0 && seq_dir == 1) seq_index = QP_LEGS*seq_length-1;
+//    printf("result = %d\n",result);
+    return result;
+}
+
 
