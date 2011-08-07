@@ -199,6 +199,7 @@ int CQPed::moveByStick(){
     if(pscon.getShoulderShapes(R2) && mode == 0) mode = 3;
     if(pscon.getShoulderShapes(L1) && mode == 0) mode = 2;
     if(pscon.getShoulderShapes(L2) && mode == 0) mode = 4;
+    if(pscon.getShoulderShapes(CROSS) && mode == 0) mode = 5;
     
     switch(mode){
     case 0:
@@ -255,6 +256,17 @@ int CQPed::moveByStick(){
             printf("seq_dir switched to %x\n",seq_dir);
         }
         break;
+    case 5:
+        //rotate around x with up/down
+        if(pscon.getSSDpad(UP)){
+            trigger = 1;
+            changeMainBodyAngle(-QP_BUTTON_SPEED,0,0);
+        }
+        if(pscon.getSSDpad(DOWN)){
+            trigger = 1;
+            changeMainBodyAngle(QP_BUTTON_SPEED,0,0);
+        }
+        break;        
     default:
         //shoulder buttons designate leg
         //all movement *-1 to prevent confusion
@@ -408,7 +420,7 @@ int CQPed::sequence(){
     //leg 0 up->+z->down
     double stride = 5;
     double clearance = 4;
-    double sway = 7;
+    double sway = 3;
     if(seq_dir == 1) {
         clearance *= -1.0;
         stride *= -1.0;
@@ -430,22 +442,24 @@ int CQPed::sequence(){
         leg=2;
         break;
     }        
-    printf("leg = %d\n",leg);
+//    printf("leg = %d\n",leg);
     legs[leg]->fillWithPos(V,0);
     
-    printf("seq_index= %d\n",seq_index);
+//    printf("seq_index= %d\n",seq_index);
     //actual sequence      
     switch(seq_index%seq_length){
     case SSPEED:
-        changeAllLegs(rot_vector_get(V,0)/sway, 0, rot_vector_get(V,2)/sway);
-        result = changeSingleLeg(leg, 0,clearance,0);
+        if(changeAllLegs(rot_vector_get(V,0)/sway, 0, rot_vector_get(V,2)/sway)==0)
+            result = changeSingleLeg(leg, 0,clearance,0);  
+        else result =-1;
         break;
     case SSPEED*2:
         result = changeSingleLeg(leg, 0,0,stride);
         break;
     case SSPEED*3:
-        changeAllLegs(-rot_vector_get(V,0)/sway, 0, -rot_vector_get(V,2)/sway);
-        result = changeSingleLeg(leg, 0,-clearance,0);
+        if (changeAllLegs(-rot_vector_get(V,0)/sway, 0, -rot_vector_get(V,2)/sway) ==0)
+            result = changeSingleLeg(leg, 0,-clearance,0);
+        else result =-1;
         break;
     }
     if (result == 0 ) {
@@ -455,7 +469,7 @@ int CQPed::sequence(){
     }
     if(seq_index/seq_length == QP_LEGS && seq_dir == 0) seq_index = 0;
     if(seq_index == 0 && seq_dir == 1) seq_index = QP_LEGS*seq_length-1;
-    printf("result = %d\n",result);
+//    printf("result = %d\n",result);
     return result;
 }
 
