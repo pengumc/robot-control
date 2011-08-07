@@ -1,39 +1,4 @@
-//-----------------------------------------------------------------------------
-#ifndef __CSERVO_CPP__
-#define __CSERVO_CPP__
-#include <stdint.h>
-#include "CAngle.cpp"
-#include <stdlib.h>
-//#include "CUsbDevice.cpp"
-
-class CServo2{
-    friend class CUsbDevice;
-    public:
-        CServo2();
-        void reset();
-        CAngle offset;
-        double pulsewidthToAngle(); 
-        double pulsewidthToAngle(uint8_t s); 
-        uint8_t angleToPulsewidth();
-        uint8_t angleToPulsewidth(double s);
-        ///returns 1 if angle is valid
-        uint8_t isValid(double s);
-        void setAngle(double s);
-        void changeAngle(double s);
-        void mirrorZ();
-        double getAngle();
-        uint8_t getPW();
-        void setPW(uint8_t p);
-        void flipDirection();
-    private:
-        double K;
-        uint8_t midPulse;
-        uint8_t minPulse;
-        uint8_t maxPulse;
-        double direction;
-        CAngle angle;
-        uint8_t pw;
-};
+#include "robot-control/CServo.h"
 
 CServo2::CServo2(){reset();}
 
@@ -77,8 +42,8 @@ uint8_t CServo2::angleToPulsewidth(){
 
 
 uint8_t CServo2::angleToPulsewidth(double s){
-    s = angle.anglize(s-offset.get());
-    return (((s) / K) / direction) + midPulse;
+    double a = angle.anglize(s-offset.get());
+    return (((a) / K) / direction) + midPulse;
 }
 
 double CServo2::pulsewidthToAngle(){
@@ -86,18 +51,25 @@ double CServo2::pulsewidthToAngle(){
     
 }
 
-double CServo2::pulsewidthToAngle(uint8_t s){
-    return ((s - midPulse) * direction * K + offset.get());
+double CServo2::pulsewidthToAngle(int8_t s){
+    return (s - (midPulse)) * direction * K + offset.get();
 
 }
 
 
 
 uint8_t CServo2::isValid(double s){
-    return angle.isBetween(
+    uint8_t i =  angle.isBetween(
         pulsewidthToAngle(minPulse),
         pulsewidthToAngle(maxPulse),
         s);
+/*    if(i==1) printf("pass\n");
+    else {
+        printf("fail % .3g\n", s);
+        printDetails();
+    }
+*/    return i;
+        
 }
 
 void CServo2::setAngle(double s){
@@ -122,16 +94,11 @@ void CServo2::changeAngle(double s){
    }
 }
 
-#ifndef __MAIN__
-//testing
-int main(int argc, char *argv[]){
-    CServo2 S;
-    S.offset =-(PI/2);
-    S.setAngle(-PI/2);
-    S.flipDirection();
-    S.changeAngle(atof(argv[1]));
-    printf("pw %d\nangle %f\n", S.getPW(), S.getAngle());
+void CServo2::printDetails(){
+    printf("  valid angles: %.4g to %.4g\n", pulsewidthToAngle(minPulse), pulsewidthToAngle(maxPulse));
+    printf("  valid PW: %d to %d\n",minPulse, maxPulse);
+    printf("  offset : %.4g\n", offset.get());
+    printf("  currently at: % .3g | %d\n", angle, pw);
 }
 
-#endif
-#endif
+

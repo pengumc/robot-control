@@ -1,39 +1,5 @@
-#ifndef __CUSBDEVICE__
-#define __CUSBDEVICE__
-#define USBCOMMANDLINE
-#define USBRETRY 3
-#include <usb.h>
-#include "opendevice.h"
-#include "requests.h"
-#include "usbconfig.h"
-#include "i2c_header.h"
-#define SERVOS 12
-#include "CAngle.cpp"
+#include "robot-control/CUsbDevice.h"
 
-//usb device--------------------------------------------------------------------
-class CUsbDevice{
-    public:
-        CUsbDevice();
-        int8_t connected;
-        int8_t connect();
-        void readServoData();
-        void readServoData(CServo2 *servos);
-        void sendServoData();
-        void sendServoData(CServo2 *servos);
-        void printA();
-        void printB();
-        int getData();
-        char PSControllerDataBuffer[BUFLEN_SERVO_DATA];
-    private:
-        usb_dev_handle *handle;
-        char servoDataBuffer[BUFLEN_SERVO_DATA];
-        char vendor[USB_CFG_VENDOR_NAME_LEN+1];
-        char product[USB_CFG_DEVICE_NAME_LEN+1];
-        unsigned char rawVid[2];
-        unsigned char rawPid[2];
-        int vid,pid;
-        int sendCtrlMsg(int request, int reqType, int wval, int wind, char *buffer);
-};
 
 CUsbDevice::CUsbDevice(){
     vendor = {USB_CFG_VENDOR_NAME,0};
@@ -65,7 +31,7 @@ int CUsbDevice::getData(){
 //        printf("}\n");
 }
 
-void CUsbDevice::printA(){
+void CUsbDevice::printA(){ 
     char i;
     printf("buffer A: {");
     for (i=0;i<BUFLEN_SERVO_DATA;i++){
@@ -187,4 +153,4 @@ int CUsbDevice::sendCtrlMsg(int request, int reqType, int wval, int wind, char *
     return cnt;
 }
 
-#endif
+
