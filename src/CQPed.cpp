@@ -21,7 +21,8 @@ void stepKalman(struct KALMAN *kal, KALMAN_TYPE measurement){
 
 void CQPed::reset(){
     usb.connect();
-    seq_index=0;
+    seq_index=1;
+    seq_dir = 0;
     char i;
     for (i=0;i<BUFLEN_SERVO_DATA;i++){
         servoArray[i].reset();
@@ -185,6 +186,9 @@ void CQPed::getMainBodyRotation(rot_vector_t *returnVector){
     rot_vector_copy(mainBodyAngles, returnVector);
 }
 
+//------------------
+// CONTROLLER INPUT
+//------------------
 ///returns 0 if nothing was done, 1 otherwise
 int CQPed::moveByStick(){
     //assume pcscon is filled with valid data
@@ -243,6 +247,12 @@ int CQPed::moveByStick(){
         if(pscon.getSSDpad(SELECT)){
             trigger = 1;
             sequence();
+        }
+        //switch dir
+        if(pscon.getShoulderShapes(SQUARE)){
+            trigger=1;
+            seq_dir ^= 1;
+            printf("seq_dir switched to %x\n",seq_dir);
         }
         break;
     default:
@@ -396,13 +406,19 @@ void CQPed::readFromDev(){
 //------------
 int CQPed::sequence(){
     //leg 0 up->+z->down
-    double stride = 4;
+    double stride = 5;
     double clearance = 4;
-    #define SSPEED 5
+    double sway = 7;
+    if(seq_dir == 1) {
+        clearance *= -1.0;
+        stride *= -1.0;
+        sway *= -1.0;
+    }
+    #define SSPEED 3
     uint8_t seq_length = SSPEED*3+1;
     int result = 0;
     uint8_t leg = seq_index / seq_length;
-    //ranzige fix
+    //ranzige leg order fix
     switch(leg){
     case 1:
         leg=3;
@@ -414,24 +430,32 @@ int CQPed::sequence(){
         leg=2;
         break;
     }        
-        
+    printf("leg = %d\n",leg);
+    legs[leg]->fillWithPos(V,0);
+    
+    printf("seq_index= %d\n",seq_index);
     //actual sequence      
     switch(seq_index%seq_length){
     case SSPEED:
+        changeAllLegs(rot_vector_get(V,0)/sway, 0, rot_vector_get(V,2)/sway);
         result = changeSingleLeg(leg, 0,clearance,0);
         break;
     case SSPEED*2:
         result = changeSingleLeg(leg, 0,0,stride);
         break;
     case SSPEED*3:
+        changeAllLegs(-rot_vector_get(V,0)/sway, 0, -rot_vector_get(V,2)/sway);
         result = changeSingleLeg(leg, 0,-clearance,0);
         break;
     }
     if (result == 0 ) {
-        seq_index++;
+        if(seq_dir == 0 ) seq_index++;
+        else seq_index--;
         result = changeAllLegs(0,0,-stride/(seq_length*QP_LEGS));
     }
-    if(seq_index/seq_length == QP_LEGS) seq_index = 0;
+    if(seq_index/seq_length == QP_LEGS && seq_dir == 0) seq_index = 0;
+    if(seq_index == 0 && seq_dir == 1) seq_index = QP_LEGS*seq_length-1;
+    printf("result = %d\n",result);
     return result;
 }
 

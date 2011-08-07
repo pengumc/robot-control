@@ -98,6 +98,7 @@ class CQPed{
         rot_matrix_t *inverseR;
         void flipTemp();
         uint8_t seq_index;
+        uint8_t seq_dir;
         
         
 };
