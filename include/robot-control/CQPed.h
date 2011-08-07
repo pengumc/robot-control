@@ -10,6 +10,7 @@
 #define QP_LEGS 4
 #define QP_CONTROLLER_TRESHOLD 32
 #define QP_STICK_SPEED (0.2/128)
+#define QP_BUTTON_SPEED (0.05)
 #define KALMAN_TYPE double
 typedef struct KALMAN{
   KALMAN_TYPE x;

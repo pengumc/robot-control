@@ -25,7 +25,7 @@ class CSolver2{
         ~CSolver2();
         rot_vector_t *resultVector;
         void printParams();
-//    protected:
+    protected:
         int solveFor();
         solverParams2_t p;
     private:
