@@ -57,11 +57,13 @@ void CQPed::reset(){
     servoArray[11].setAngle(-PI/2);
 
 
+/*
     //print start states
     for(i=0;i<QP_SERVOS/2;i++)  {
         printf("servo %d:\n",i);
         servoArray[i].printDetails();
     }
+*/    
     //create leg instances
     solverParams2_t P;
     P.A = 3.2;
@@ -106,7 +108,7 @@ void CQPed::reset(){
     mainBodyR = rot_matrix_alloc();
     inverseR = rot_matrix_alloc();
     changeMainBodyAngle(0,0,0);
-    rot_matrix_print(mainBodyR);
+    //rot_matrix_print(mainBodyR);
 
     //kalman
     acc_mid[0] = 128;

@@ -17,8 +17,8 @@ CLeg::CLeg(CServo2 *servoSubSet, solverParams2_t *lengths, rot_vector_t *COBOffs
     rot_vector_set(servoPos[0], 0, COBOffset[0]);
     rot_vector_set(servoPos[0], 1, COBOffset[1]);    
     rot_vector_set(servoPos[0], 2, COBOffset[2]);
-    updatePos(); 
-    printPositions();
+    //updatePos(); 
+    //printPositions();
 
     
 }

@@ -73,9 +73,11 @@ changes in 0.6
 -fixed massive bugs in solver, I can't believe it actually worked as long as it did
 -added two more legs
 -changed servo layout due to rebuild of physical quadruped
+-removed most debug output
 
 TODO
 -add load save hardware functions
 -add topdown view in interface
+-add angle label to interface
 
 
