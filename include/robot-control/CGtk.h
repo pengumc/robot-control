@@ -13,18 +13,22 @@
 #define GUI_ADC_LABEL_FORMAT "X: %d | % .4g\nY: %d | % .4g"
 #define GUI_DRAW_SCALE 9.0
 #define GUI_LINEWIDTH 4
+#define GUI_DA_SIZE 300
 
 static void close_window();
 static gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer data);
 static gboolean timeout1(gpointer data);
 static void timeout_disconnected(gpointer data);
 static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
+static void paintTop(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
 static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
 static void connect_clicked_cb(GtkButton *button, gpointer data);
 static void controller_clicked_cb(GtkButton *button, gpointer data);
 void drawLeg(cairo_t *cr, gpointer data, uint8_t leg, double  startX,double startY);
 void drawLeg_around_0(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY);
+void drawLegTop(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY);
 void drawLineThrough(cairo_t *cr, double x1, double y1, double x2, double y2);
+void drawCross(cairo_t *cr, double x, double y);
 
 class CGtk{
     public:
@@ -52,6 +56,7 @@ class CGtk{
         GtkWidget *position_label[QP_LEGS];
         GtkWidget *adc_label;
         GtkWidget *da; ///drawing area
+        GtkWidget *topDa; //top view drawing area
         CQPed *qp;
         void show_disconnected();
         void show_connected();
@@ -62,10 +67,12 @@ class CGtk{
         friend gboolean timeout1(gpointer data);
         friend void timeout_disconnected(gpointer data);
         friend void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
+        friend void paintTop(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
         friend void connect_clicked_cb(GtkButton *button, gpointer data);
         friend void controller_clicked_cb(GtkButton *button, gpointer data);
         friend void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
         friend void drawLeg(cairo_t *cr, gpointer data, uint8_t leg, double  startX,double startY);
         friend void drawLeg_around_0(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY);
+        friend void drawLegTop(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY);
 };
 #endif

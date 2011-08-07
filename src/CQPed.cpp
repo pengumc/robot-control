@@ -21,6 +21,7 @@ void stepKalman(struct KALMAN *kal, KALMAN_TYPE measurement){
 
 void CQPed::reset(){
     usb.connect();
+    seq_index=0;
     char i;
     for (i=0;i<BUFLEN_SERVO_DATA;i++){
         servoArray[i].reset();
@@ -238,6 +239,11 @@ int CQPed::moveByStick(){
             trigger = 1;
             reset();
         }
+        //sequence
+        if(pscon.getSSDpad(SELECT)){
+            trigger = 1;
+            sequence();
+        }
         break;
     default:
         //shoulder buttons designate leg
@@ -328,7 +334,10 @@ int CQPed::changeSingleLeg(uint8_t leg, double X, double Y, double Z){
     rot_vector_setAll(V, X, Y, Z);
     rot_matrix_dot_vector(inverseR, V,V);
     legs[leg]->relativeMoveEndPoint(V);        
-    if(legs[leg]->readyFlag) legs[leg]->commit();
+    if(legs[leg]->readyFlag){
+        legs[leg]->commit();
+        return 0;
+    } else return -1;
 }
 
 int CQPed::changeAllLegs(double X, double Y, double Z){
@@ -381,4 +390,49 @@ void CQPed::sendToDev(){
 void CQPed::readFromDev(){
     usb.readServoData(servoArray);
 }
+
+//------------
+// SEQUENCE
+//------------
+int CQPed::sequence(){
+    //leg 0 up->+z->down
+    double stride = 4;
+    double clearance = 4;
+    #define SSPEED 5
+    uint8_t seq_length = SSPEED*3+1;
+    int result = 0;
+    uint8_t leg = seq_index / seq_length;
+    //ranzige fix
+    switch(leg){
+    case 1:
+        leg=3;
+        break;
+    case 2:
+        leg=1;
+        break;
+    case 3:
+        leg=2;
+        break;
+    }        
+        
+    //actual sequence      
+    switch(seq_index%seq_length){
+    case SSPEED:
+        result = changeSingleLeg(leg, 0,clearance,0);
+        break;
+    case SSPEED*2:
+        result = changeSingleLeg(leg, 0,0,stride);
+        break;
+    case SSPEED*3:
+        result = changeSingleLeg(leg, 0,-clearance,0);
+        break;
+    }
+    if (result == 0 ) {
+        seq_index++;
+        result = changeAllLegs(0,0,-stride/(seq_length*QP_LEGS));
+    }
+    if(seq_index/seq_length == QP_LEGS) seq_index = 0;
+    return result;
+}
+
 
