@@ -4,6 +4,7 @@
 #include <gtk/gtk.h>
 #include "robot-control/Defaults.h"
 #include "robot-control/CQPed.h"
+#include "robot-control/CGraph.h"
 
 #define GUI_TIMEOUT 50 //timeout in ms
 #define GUI_KEYBOARD_SPEED 0.2
@@ -22,6 +23,7 @@ static void timeout_disconnected(gpointer data);
 static void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
 static void paintTop(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
 static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
+static void paintGraph(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
 static void connect_clicked_cb(GtkButton *button, gpointer data);
 static void controller_clicked_cb(GtkButton *button, gpointer data);
 void drawLeg(cairo_t *cr, gpointer data, uint8_t leg, double  startX,double startY);
@@ -35,6 +37,7 @@ class CGtk{
         uint8_t running;
         CGtk(CQPed *Q);
         uint8_t selected_leg;
+        CGraph graph;
         void run();
         void connect_timeout();
         void updateServoData();
@@ -57,6 +60,7 @@ class CGtk{
         GtkWidget *adc_label;
         GtkWidget *da; ///drawing area
         GtkWidget *topDa; //top view drawing area
+        GtkWidget *graphDa; //graph drawing area
         CQPed *qp;
         void show_disconnected();
         void show_connected();
@@ -68,6 +72,7 @@ class CGtk{
         friend void timeout_disconnected(gpointer data);
         friend void paint(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
         friend void paintTop(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
+        friend void paintGraph(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
         friend void connect_clicked_cb(GtkButton *button, gpointer data);
         friend void controller_clicked_cb(GtkButton *button, gpointer data);
         friend void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
