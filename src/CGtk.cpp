@@ -665,26 +665,41 @@ static void paintGraph(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     cairo_t *cr;
     cr = gdk_cairo_create(widget->window);
     cairo_set_line_width(cr,0.7);
+    //clear
     cairo_set_source_rgb(cr, 1,1,1);
     cairo_paint(cr);
-
-    //line points
+    //0 line
+    cairo_set_source_rgb(cr, 0,0,0);
+    cairo_move_to(cr, 0, alloc.height/2);
+    cairo_rel_line_to(cr,alloc.width,0);
+    cairo_stroke(cr);
+    
+    //graphs
     cairo_set_source_rgb(cr, 1,0,0);
-    cairo_move_to(cr, 0, alloc.height);
-    uint16_t i;
+    createLineFromGraph(cr, &(gui->graph), alloc.height/2);
+    
+}
+
+
+
+//------------------------------
+// CREATE LINE FROM GRAPH CLASS
+//-------------------------------
+void createLineFromGraph(cairo_t *cr, Graph* graph, double zeroY){
+    //color and linewidth are assumed to be set
+    cairo_move_to(cr, 0, zeroY);
+    GraphIndex i;
+    GraphIndex currentIndex = graph->getIndex();
     uint16_t xAxis = 0;
-    for(i=gui->graph.index+1; i<GRAPH_DATA_LENGTH; i++){
-        cairo_line_to(cr, xAxis, alloc.height-gui->graph.data[i]);
+    for(i=currentIndex+1; i<GRAPH_DATA_LENGTH; i++){
+        cairo_line_to(cr, xAxis, zeroY - graph->getValue(i));
         xAxis++;
     }
-    for(i=0; i<gui->graph.index+1; i++){
-        cairo_line_to(cr, xAxis, alloc.height-gui->graph.data[i]);
+    for(i=0; i < currentIndex+1; i++){
+        cairo_line_to(cr, xAxis, zeroY - graph->getValue(i));
         xAxis++;
     }
     cairo_stroke(cr);
-    
-    
-    
     
 }
 
