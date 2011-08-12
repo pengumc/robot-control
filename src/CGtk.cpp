@@ -1,7 +1,7 @@
 #include "robot-control/CGtk.h"
 
+//------------------------------------------------------------------------------
 static void close_window(){gtk_main_quit();}
-
 CGtk::CGtk(CQPed *Q){ 
     running = 0; 
     selected_leg = 0;
@@ -674,7 +674,13 @@ void drawCross(cairo_t *cr, double x, double y){
 //------------------
 // DRAW TOPDOWN LEG
 //------------------
-void drawLegTop(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY){
+void 
+drawLegTop(cairo_t *cr, 
+           gpointer data,
+           uint8_t leg, 
+           double startX,
+           double startY)
+{
     CGtk* gui = ((CGtk*)data);    
     double x = startX;
     double y = startY;
@@ -686,20 +692,26 @@ void drawLegTop(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double 
     //servo 0 -> servo 1
     cairo_rectangle(cr, x-5, y-5, 10, 10);
     cairo_move_to(cr, x,y);
-    x +=( gui->qp->legs[leg]->getX(1) -gui->qp->legs[leg]->getX(0) )*GUI_DRAW_SCALE; 
-    y -=( gui->qp->legs[leg]->getZ(1) -gui->qp->legs[leg]->getZ(0) )*GUI_DRAW_SCALE; 
+    x +=( gui->qp->legs[leg]->getX(1)
+         -gui->qp->legs[leg]->getX(0) )*GUI_DRAW_SCALE; 
+    y -=( gui->qp->legs[leg]->getZ(1) 
+         -gui->qp->legs[leg]->getZ(0) )*GUI_DRAW_SCALE; 
     cairo_line_to(cr, x,y);
     //servo 1 -> servo 2    
     cairo_rectangle(cr, x-5, y-5, 10, 10);
     cairo_move_to(cr, x,y);
-    x +=( gui->qp->legs[leg]->getX(2) -gui->qp->legs[leg]->getX(1) )*GUI_DRAW_SCALE; 
-    y -=( gui->qp->legs[leg]->getZ(2) -gui->qp->legs[leg]->getZ(1) )*GUI_DRAW_SCALE; 
+    x +=( gui->qp->legs[leg]->getX(2) 
+         -gui->qp->legs[leg]->getX(1) )*GUI_DRAW_SCALE; 
+    y -=( gui->qp->legs[leg]->getZ(2) 
+         -gui->qp->legs[leg]->getZ(1) )*GUI_DRAW_SCALE; 
     cairo_line_to(cr, x,y);
     //servo 2 -> endPoint
     cairo_rectangle(cr, x-5, y-5, 10, 10);
     cairo_move_to(cr, x,y);
-    x +=( gui->qp->legs[leg]->getX(3) -gui->qp->legs[leg]->getX(2) )*GUI_DRAW_SCALE; 
-    y -=( gui->qp->legs[leg]->getZ(3) -gui->qp->legs[leg]->getZ(2) )*GUI_DRAW_SCALE; 
+    x +=( gui->qp->legs[leg]->getX(3) 
+         -gui->qp->legs[leg]->getX(2) )*GUI_DRAW_SCALE; 
+    y -=( gui->qp->legs[leg]->getZ(3) 
+         -gui->qp->legs[leg]->getZ(2) )*GUI_DRAW_SCALE; 
     cairo_line_to(cr, x,y);
     drawCross(cr, x,y);
     cairo_rectangle(cr, x-5, y-5, 10, 10);
@@ -711,7 +723,8 @@ void drawLegTop(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double 
 //--------------
 //  PAINT GRAPH
 //--------------
-static void paintGraph(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
+static void
+paintGraph(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     CGtk* gui = ((CGtk*)data);    
     GtkAllocation alloc;
     gtk_widget_get_allocation(widget, &alloc);
