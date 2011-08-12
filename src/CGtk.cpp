@@ -405,7 +405,7 @@ static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     else 
         cairo_set_source_rgb(cr, 0,0,0);
     cairo_arc(cr, 
-              pesCenterX + DPADSPACING, 
+              shapesCenterX + DPADSPACING, 
               shapesCenterY, 
               10, 
               0, 

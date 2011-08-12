@@ -15,7 +15,7 @@ WINDOWS = -lusb
 COMPILER = g++
 CC = gcc
 OUTPUTNAME = $(NAME) 
-OBJECTS = opendevice.o CPSController.o CServo.o CUsbDevice.o CGtk.o CQPed.o CAngle.o rotation.o CLeg.o CSolver_new.o Graph.o main.o
+OBJECTS = opendevice.o CPSController.o CServo.o CUsbDevice.o CGtk.o CQPed.o CAngle.o rotation.o CLeg.o CSolver_new.o Graph.o KalmanFilter.o main.o
 
 
 .PHONY:all, clean, force

@@ -62,6 +62,8 @@ class CGtk{
         GtkWidget *da; ///drawing area
         GtkWidget *topDa; //top view drawing area
         GtkWidget *graphDa; //graph drawing area
+        GtkWidget *kalmanSz;
+        GtkWidget *kalmanSw;
         CQPed *qp;
         void show_disconnected();
         void show_connected();
