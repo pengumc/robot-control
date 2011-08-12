@@ -12,7 +12,7 @@ CGtk::CGtk(CQPed *Q){
     vbox_main = gtk_vbox_new(FALSE,2);
     hbox_main = gtk_hbox_new(FALSE,2);
     vbox_left = gtk_vbox_new(FALSE,2);
-    gtk_widget_set_size_request(vbox_left, 200, -1);
+//    gtk_widget_set_size_request(vbox_left, 200, -1);
     hbox_button = gtk_hbox_new(FALSE,2);
     vbox_right = gtk_vbox_new(TRUE,2);
     gtk_widget_set_size_request(vbox_right, 100, -1);
@@ -40,6 +40,9 @@ CGtk::CGtk(CQPed *Q){
         gtk_label_set_markup(GTK_LABEL(servo_label[i]), text);
         gtk_box_pack_start(GTK_BOX(vbox_left), servo_label[i],FALSE,TRUE,0);
     }
+    graphDa = gtk_drawing_area_new();
+    gtk_widget_set_size_request(graphDa, GUI_DA_SIZE,GUI_DA_SIZE);
+    gtk_box_pack_end(GTK_BOX(vbox_left), graphDa, FALSE, TRUE, 0); 
     //mid
     da = gtk_drawing_area_new();
     gtk_widget_set_size_request(da, GUI_DA_SIZE,GUI_DA_SIZE-100);
@@ -71,6 +74,7 @@ CGtk::CGtk(CQPed *Q){
     g_signal_connect(G_OBJECT(gamepadDrawing),
          "expose_event", G_CALLBACK(paintGP), (gpointer)this);    
     g_signal_connect(G_OBJECT(topDa), "expose_event", G_CALLBACK(paintTop), (gpointer)this);
+    g_signal_connect(G_OBJECT(graphDa), "expose_event", G_CALLBACK(paintGraph), (gpointer)this);
     gtk_widget_show_all(window);
     qp = Q;
 }
@@ -254,6 +258,7 @@ static gboolean timeout1(gpointer data){
     if(gui->running == 0) return FALSE;
     gui->qp->getUsbData();
     gui->qp->fillPSController();
+    gui->graph.addPoint(gui->qp->pscon.getRx());
 //    gui->qp->fillADC();
 //    gui->updateADC();
     gui->updateGamePadDrawing();
@@ -266,7 +271,7 @@ static gboolean timeout1(gpointer data){
     gui->updatePositions();    
     paint(gui->da, NULL, gui);
     paintTop(gui->topDa, NULL, gui);
-    
+    paintGraph(gui->graphDa, NULL, gui);
     if(gui->qp->getConnected()>1) gui->show_connected();
     else gui->show_disconnected();
     return TRUE;
@@ -650,4 +655,51 @@ void drawLegTop(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double 
 }
 
 
+//--------------
+//  PAINT GRAPH
+//--------------
+static void paintGraph(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
+    CGtk* gui = ((CGtk*)data);    
+    GtkAllocation alloc;
+    gtk_widget_get_allocation(widget, &alloc);
+    cairo_t *cr;
+    cr = gdk_cairo_create(widget->window);
+    cairo_set_line_width(cr,0.7);
+    //clear
+    cairo_set_source_rgb(cr, 1,1,1);
+    cairo_paint(cr);
+    //0 line
+    cairo_set_source_rgb(cr, 0,0,0);
+    cairo_move_to(cr, 0, alloc.height/2);
+    cairo_rel_line_to(cr,alloc.width,0);
+    cairo_stroke(cr);
+    
+    //graphs
+    cairo_set_source_rgb(cr, 1,0,0);
+    createLineFromGraph(cr, &(gui->graph), alloc.height/2);
+    
+}
+
+
+
+//------------------------------
+// CREATE LINE FROM GRAPH CLASS
+//-------------------------------
+void createLineFromGraph(cairo_t *cr, Graph* graph, double zeroY){
+    //color and linewidth are assumed to be set
+    cairo_move_to(cr, 0, zeroY);
+    GraphIndex i;
+    GraphIndex currentIndex = graph->getIndex();
+    uint16_t xAxis = 0;
+    for(i=currentIndex+1; i<GRAPH_DATA_LENGTH; i++){
+        cairo_line_to(cr, xAxis, zeroY - graph->getValue(i));
+        xAxis++;
+    }
+    for(i=0; i < currentIndex+1; i++){
+        cairo_line_to(cr, xAxis, zeroY - graph->getValue(i));
+        xAxis++;
+    }
+    cairo_stroke(cr);
+    
+}
 
