@@ -5,6 +5,8 @@ static void close_window(){gtk_main_quit();}
 CGtk::CGtk(CQPed *Q){ 
     running = 0; 
     selected_leg = 0;
+    qp = Q;
+    
     gtk_init(NULL,NULL);
     //build gui elements
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -12,7 +14,6 @@ CGtk::CGtk(CQPed *Q){
     vbox_main = gtk_vbox_new(FALSE,2);
     hbox_main = gtk_hbox_new(FALSE,2);
     vbox_left = gtk_vbox_new(FALSE,2);
-//    gtk_widget_set_size_request(vbox_left, 200, -1);
     hbox_button = gtk_hbox_new(FALSE,2);
     vbox_right = gtk_vbox_new(TRUE,2);
     gtk_widget_set_size_request(vbox_right, 100, -1);
@@ -22,7 +23,6 @@ CGtk::CGtk(CQPed *Q){
     gtk_box_pack_start(GTK_BOX(hbox_main), vbox_mid,TRUE,TRUE,2);
     gtk_box_pack_start(GTK_BOX(hbox_main), vbox_right,TRUE, TRUE,2);
 
-    uint8_t i;
     char text[100];
     //left
     button_connect = gtk_button_new();
@@ -34,9 +34,10 @@ CGtk::CGtk(CQPed *Q){
     gtk_box_pack_start(GTK_BOX(vbox_left), hbox_button,FALSE,FALSE,0);
     gtk_box_pack_start(GTK_BOX(hbox_button),button_connect,FALSE,FALSE,0);
     gtk_box_pack_start(GTK_BOX(hbox_button),button_leg,FALSE,FALSE,0);
+    uint8_t i;
     for(i=0;i<SERVOS;i++){
         sprintf(text, GUI_SERVO_LABEL_FORMAT, i,0.0,0);
-        servo_label[i] = gtk_label_new(NULL); //gtk_check_button_new_with_label(text);
+        servo_label[i] = gtk_label_new(NULL); 
         gtk_label_set_markup(GTK_LABEL(servo_label[i]), text);
         gtk_box_pack_start(GTK_BOX(vbox_left), servo_label[i],FALSE,TRUE,0);
     }
@@ -54,7 +55,11 @@ CGtk::CGtk(CQPed *Q){
     for(i=0;i<QP_LEGS;i++){
         sprintf(text, "X%d Y%d Z%d",i,i,i);
         position_label[i] = gtk_label_new(text);
-        gtk_box_pack_start(GTK_BOX(vbox_right), position_label[i], TRUE, TRUE, 0);
+        gtk_box_pack_start(GTK_BOX(vbox_right),
+                          position_label[i],
+                          TRUE,
+                          TRUE,
+                          0);
     }
     adc_label = gtk_label_new("");
     gtk_box_pack_start(GTK_BOX(vbox_right), adc_label, TRUE, TRUE, 0);
@@ -65,18 +70,41 @@ CGtk::CGtk(CQPed *Q){
     //add main container to window
     gtk_container_add(GTK_CONTAINER(window), vbox_main);
     //connect signals
-    g_signal_connect(window, "destroy", G_CALLBACK(close_window),NULL);
-    g_signal_connect(window, "key_press_event", G_CALLBACK(key_press_callback), (gpointer)this);
-    g_signal_connect(button_connect, "clicked", G_CALLBACK(connect_clicked_cb), (gpointer)this);
-    g_signal_connect(button_leg, "clicked", G_CALLBACK(controller_clicked_cb), (gpointer)this);
-    connect_timeout();
-    g_signal_connect(G_OBJECT(da), "expose_event", G_CALLBACK(paint), (gpointer)this);
+    g_signal_connect(window,
+                    "destroy",
+                    G_CALLBACK(close_window),
+                    NULL);
+    g_signal_connect(window,
+                    "key_press_event",
+                    G_CALLBACK(key_press_callback),
+                    (gpointer)this);
+    g_signal_connect(button_connect, 
+                    "clicked", 
+                    G_CALLBACK(connect_clicked_cb),
+                    (gpointer)this);
+    g_signal_connect(button_leg,
+                    "clicked",
+                    G_CALLBACK(controller_clicked_cb),
+                    (gpointer)this);
+    g_signal_connect(G_OBJECT(da),
+                    "expose_event", 
+                    G_CALLBACK(paint), 
+                    (gpointer)this);
     g_signal_connect(G_OBJECT(gamepadDrawing),
-         "expose_event", G_CALLBACK(paintGP), (gpointer)this);    
-    g_signal_connect(G_OBJECT(topDa), "expose_event", G_CALLBACK(paintTop), (gpointer)this);
-    g_signal_connect(G_OBJECT(graphDa), "expose_event", G_CALLBACK(paintGraph), (gpointer)this);
+                    "expose_event", 
+                    G_CALLBACK(paintGP), 
+                    (gpointer)this);    
+    g_signal_connect(G_OBJECT(topDa), 
+                    "expose_event", 
+                    G_CALLBACK(paintTop), 
+                    (gpointer)this);
+    g_signal_connect(G_OBJECT(graphDa), 
+                    "expose_event", 
+                    G_CALLBACK(paintGraph), 
+                    (gpointer)this);
+
+    connect_timeout();
     gtk_widget_show_all(window);
-    qp = Q;
 }
 
 void CGtk::show_connected(){
@@ -86,7 +114,8 @@ void CGtk::show_connected(){
 }
 void CGtk::show_disconnected(){
     GtkWidget *img;
-    img = gtk_image_new_from_stock(GTK_STOCK_DIALOG_ERROR, GTK_ICON_SIZE_BUTTON);
+    img = gtk_image_new_from_stock(GTK_STOCK_DIALOG_ERROR, 
+                                   GTK_ICON_SIZE_BUTTON);
     gtk_button_set_image(GTK_BUTTON(button_connect),img);
 }
 
@@ -159,7 +188,8 @@ void CGtk::updatePositions(){
 
  
 
-static gboolean key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer data){
+static gboolean 
+key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer data){
     guint key = ((GdkEventKey*)event)->keyval;
     CGtk* gui = ((CGtk*)data);
     switch(key){
@@ -347,26 +377,39 @@ static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     const double shapesCenterX = alloc.width/6*5;
     const double shapesCenterY = alloc.height * 1/3;
     //triangle
-    if(gui->qp->pscon.getShoulderShapes(TRIANGLE)) cairo_set_source_rgb(cr, 1,0,0);
-    else cairo_set_source_rgb(cr, 0,0,0);
+    if(gui->qp->pscon.getShoulderShapes(TRIANGLE)) 
+        cairo_set_source_rgb(cr, 1,0,0);
+    else 
+        cairo_set_source_rgb(cr, 0,0,0);
     drawTriangle(cr, shapesCenterX, shapesCenterY - DPADSPACING, 20,0);
     //cross
-    if(gui->qp->pscon.getShoulderShapes(CROSS)) cairo_set_source_rgb(cr, 1,0,0);
-    else cairo_set_source_rgb(cr, 0,0,0);
+    if(gui->qp->pscon.getShoulderShapes(CROSS)) 
+        cairo_set_source_rgb(cr, 1,0,0);
+    else 
+        cairo_set_source_rgb(cr, 0,0,0);
     cairo_move_to(cr, shapesCenterX+10, shapesCenterY + DPADSPACING-10);
     cairo_rel_line_to(cr, -20, +20);
     cairo_rel_move_to(cr, 20,0);
     cairo_rel_line_to(cr, -20, -20);
     cairo_stroke(cr);
     //square
-    if(gui->qp->pscon.getShoulderShapes(SQUARE)) cairo_set_source_rgb(cr, 1,0,0);
-    else cairo_set_source_rgb(cr, 0,0,0);
+    if(gui->qp->pscon.getShoulderShapes(SQUARE)) 
+        cairo_set_source_rgb(cr, 1,0,0);
+    else 
+        cairo_set_source_rgb(cr, 0,0,0);
     cairo_rectangle(cr, shapesCenterX-DPADSPACING-10,shapesCenterY-10,20,20);
     cairo_stroke(cr);
     //circle
-    if(gui->qp->pscon.getShoulderShapes(CIRCLE)) cairo_set_source_rgb(cr, 1,0,0);
-    else cairo_set_source_rgb(cr, 0,0,0);
-    cairo_arc(cr, shapesCenterX + DPADSPACING, shapesCenterY, 10, 0, -2*PI-0.0001);
+    if(gui->qp->pscon.getShoulderShapes(CIRCLE)) 
+        cairo_set_source_rgb(cr, 1,0,0);
+    else 
+        cairo_set_source_rgb(cr, 0,0,0);
+    cairo_arc(cr, 
+              pesCenterX + DPADSPACING, 
+              shapesCenterY, 
+              10, 
+              0, 
+              -2*PI-0.0001);
     cairo_stroke(cr);
 //left stick
     const double leftCenterX = (dpadCenterX+baseX)/2;
@@ -383,7 +426,12 @@ static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     cairo_set_source_rgb(cr, 1,0,0);
     double dx = ((double)gui->qp->pscon.getLx())/140*STICKSIZE/2;
     double dy = ((double)gui->qp->pscon.getLy())/140*STICKSIZE/2;
-    cairo_arc(cr, leftCenterX +dx, leftCenterY + dy,STICKSIZE/10, 0, -2*PI-0.0001);
+    cairo_arc(cr,
+              leftCenterX +dx, 
+              leftCenterY + dy,
+              STICKSIZE/10, 
+              0, 
+              -2*PI-0.0001);
     cairo_stroke(cr);
 //right stick
     const double rightCenterX = (shapesCenterX + baseX)/2;
@@ -400,7 +448,12 @@ static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     cairo_set_source_rgb(cr, 1,0,0);
     dx = ((double)gui->qp->pscon.getRx())/140*STICKSIZE/2;
     dy = ((double)gui->qp->pscon.getRy())/140*STICKSIZE/2;
-    cairo_arc(cr, rightCenterX +dx, leftCenterY + dy,STICKSIZE/10, 0, -2*PI-0.0001);
+    cairo_arc(cr, 
+              rightCenterX +dx, 
+              leftCenterY + dy,
+              STICKSIZE/10, 
+              0, 
+              -2*PI-0.0001);
     cairo_stroke(cr);
 //shoulder buttons
     //L1
