@@ -25,7 +25,7 @@ typedef struct KALMAN{
 
 
 //quadraped class--------------------------------------------------------------
-///quadraped device, currently in 2 leg mode.
+///quadraped device
 class CQPed{
     public:
         CQPed(){reset();}
