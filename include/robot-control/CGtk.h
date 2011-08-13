@@ -26,19 +26,27 @@ static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
 static void paintGraph(GtkWidget *widget, GdkEventExpose *eev, gpointer data);
 static void connect_clicked_cb(GtkButton *button, gpointer data);
 static void controller_clicked_cb(GtkButton *button, gpointer data);
+static void spinSz1Changed(GtkSpinButton *spinButton, gpointer data);
+static void spinSw1Changed(GtkSpinButton *spinButton, gpointer data);
+static void spinSz2Changed(GtkSpinButton *spinButton, gpointer data);
+static void spinSw2Changed(GtkSpinButton *spinButton, gpointer data);
+
 void drawLeg(cairo_t *cr, gpointer data, uint8_t leg, double  startX,double startY);
 void drawLeg_around_0(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY);
 void drawLegTop(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY);
 void drawLineThrough(cairo_t *cr, double x1, double y1, double x2, double y2);
 void drawCross(cairo_t *cr, double x, double y);
-void createLineFromGraph(cairo_t *cr, Graph* graph, double zeroY);
+void createLineFromGraph(cairo_t *cr, Graph* graph, double zeroY, double scale);
+
+
 
 class CGtk{
     public:
         uint8_t running;
         CGtk(CQPed *Q);
         uint8_t selected_leg;
-        Graph graph;
+        Graph graphX;
+        Graph graphY;
         void run();
         void connect_timeout();
         void updateServoData();
@@ -54,6 +62,21 @@ class CGtk{
         GtkWidget *hbox_button;
         GtkWidget *vbox_mid;
         GtkWidget *vbox_right;
+
+        GtkWidget *table_spinButtons;
+        GtkWidget *spinButtonSz1;
+        GtkObject *adjustmentSz1;
+        GtkWidget *spinButtonSz1Label;
+        GtkWidget *spinButtonSw1;
+        GtkObject *adjustmentSw1;
+        GtkWidget *spinButtonSw1Label;
+        GtkWidget *spinButtonSz2;
+        GtkObject *adjustmentSz2;
+        GtkWidget *spinButtonSz2Label;
+        GtkWidget *spinButtonSw2;
+        GtkObject *adjustmentSw2;
+        GtkWidget *spinButtonSw2Label;
+
         GtkWidget *button_connect;
         GtkWidget *button_leg;
 	    GtkWidget *servo_label[SERVOS];
@@ -62,8 +85,6 @@ class CGtk{
         GtkWidget *da; ///drawing area
         GtkWidget *topDa; //top view drawing area
         GtkWidget *graphDa; //graph drawing area
-        GtkWidget *kalmanSz;
-        GtkWidget *kalmanSw;
         CQPed *qp;
         void show_disconnected();
         void show_connected();
@@ -83,5 +104,9 @@ class CGtk{
         friend void drawLeg(cairo_t *cr, gpointer data, uint8_t leg, double  startX,double startY);
         friend void drawLeg_around_0(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY);
         friend void drawLegTop(cairo_t *cr, gpointer data,  uint8_t leg, double  startX,double startY);
+        friend void spinSz1Changed(GtkSpinButton *spinButton, gpointer data);
+        friend void spinSw1Changed(GtkSpinButton *spinButton, gpointer data);
+        friend void spinSz2Changed(GtkSpinButton *spinButton, gpointer data);
+        friend void spinSw2Changed(GtkSpinButton *spinButton, gpointer data);
 };
 #endif

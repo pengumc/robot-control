@@ -1,21 +1,6 @@
 #include "robot-control/CQPed.h"
 
 
-void stepKalman(struct KALMAN *kal, KALMAN_TYPE measurement){
-  KALMAN_TYPE P_temp, K, x_temp;
-    //predict
-    x_temp = kal->x_last;
-    P_temp = kal->P_last + kal->Sw; //Q
-    //update
-    K = (1/(P_temp + kal->Sz)) * P_temp; //R
-    kal->x = x_temp + K * (measurement - x_temp);
-    kal->P = (1 - K) * P_temp;
-    //save previous states
-    kal->x_last = kal->x;
-    kal->P_last = kal->P;
-  
-}
-
 /** Most default values are hardcoded into this function.
 */
 
@@ -77,7 +62,6 @@ void CQPed::reset(){
     rot_vector_changeAll(V, P.A + P.C, -6, 0);
     legs[0]->setEndPoint(V);
 
-
     P.A = 3.2;
     P.B = 6.3;
     P.C = 6.1;
@@ -112,13 +96,15 @@ void CQPed::reset(){
     changeMainBodyAngle(0,0,0);
     //rot_matrix_print(mainBodyR);
 
-    //kalman
+    //accelerometer
     acc_mid[0] = 128;
     acc_mid[1] = 128;
-	filterX.Sz = 0.5;
-	filterX.Sw = 0.01;
-	filterY.Sz = 0.5;
-	filterY.Sw = 0.01;
+    kalman1.setSz(3.0);
+    kalman1.setSw(0.01);
+    kalman2.setSz(3.0);
+    kalman2.setSw(0.01);
+
+
 
 }
 
@@ -315,14 +301,15 @@ void CQPed::fillADC(){
 	//filters
 	adc[0] = usb.PSControllerDataBuffer[3];
 	adc[1] = usb.PSControllerDataBuffer[4];
-	stepKalman(&filterX, ((double)adc[0])-acc_mid[0] );
-	stepKalman(&filterY, ((double)adc[1])-acc_mid[1] );
+    kalman1.step( ((double)adc[0]) - ((double)acc_mid[0])); 
+    kalman2.step( ((double)adc[1]) - ((double)acc_mid[1]));
+    /*
     double phi = asin(filterX.x/30);
     rot_vector_setAll(V, 0,0,phi);
     rot_vector_minus(V, mainBodyAngles);
     if(changeMainBodyAngle(V[0],V[1],V[2])==0);
     sendToDev();
-//    printf("adc: %d, %d\n", adc[0], adc[1]);
+    */
 }
 
 int8_t CQPed::getConnected(){

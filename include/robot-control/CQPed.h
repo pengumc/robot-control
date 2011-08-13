@@ -6,22 +6,12 @@
 #include "robot-control/CServo.h"
 #include "robot-control/CLeg.h"
 #include "robot-control/rotation.h"
+#include "robot-control/KalmanFilter.h"
 #define QP_SERVOS 12 //TODO should be changed to QP_LEGS*LEG_DOF
 #define QP_LEGS 4
 #define QP_CONTROLLER_TRESHOLD 32
 #define QP_STICK_SPEED (0.2/128)
 #define QP_BUTTON_SPEED (0.05)
-#define KALMAN_TYPE double
-typedef struct KALMAN{
-  KALMAN_TYPE x;
-  KALMAN_TYPE x_last;
-  KALMAN_TYPE P;
-  KALMAN_TYPE P_last;
-  KALMAN_TYPE Sz;
-  KALMAN_TYPE Sw;
-} kalman_t;
-
-
 
 
 //quadraped class--------------------------------------------------------------
@@ -81,9 +71,9 @@ class CQPed{
         uint8_t adc[2];
         uint8_t acc_mid[2]; 
         void fillADC();
-        //X and Y as noted on accelerometer
-        kalman_t filterX;
-        kalman_t filterY;
+        KalmanFilter kalman1;
+        KalmanFilter kalman2;
+        
 
     private:
         ///the usb helper.

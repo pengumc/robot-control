@@ -9,13 +9,15 @@ class KalmanFilter{
         void step(double measurement);
         void setSz(double newSz);
         void setSw(double newSw);
+        double getSz();
+        double getSw();
     private:
         double x;
         double x_last;
         double P;
         double P_last;
-        double Sz;
-        double Sw;
+        double Sz; //R
+        double Sw; //Q
         void init();
 };
 

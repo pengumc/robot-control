@@ -66,3 +66,23 @@ void
 KalmanFilter::setSw(double newSw){
     Sw = newSw;
 }
+
+
+
+//-----------
+// GET SZ
+//-----------
+double
+KalmanFilter::getSz(){
+    return Sz;
+}
+
+
+
+//-----------
+// GET SW
+//-----------
+double
+KalmanFilter::getSw(){
+    return Sw;
+}
