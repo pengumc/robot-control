@@ -1,7 +1,13 @@
 #include "robot-control/CGtk.h"
 
 //------------------------------------------------------------------------------
-static void close_window(){gtk_main_quit();}
+
+static void close_window(){
+    gtk_main_quit();
+}
+
+
+
 CGtk::CGtk(CQPed *Q){ 
     running = 0; 
     selected_leg = 0;
@@ -15,6 +21,7 @@ CGtk::CGtk(CQPed *Q){
     hbox_main = gtk_hbox_new(FALSE,2);
     vbox_left = gtk_vbox_new(FALSE,2);
     hbox_button = gtk_hbox_new(FALSE,2);
+    table_spinButtons = gtk_table_new(4, 2, FALSE);
     vbox_right = gtk_vbox_new(TRUE,2);
     gtk_widget_set_size_request(vbox_right, 100, -1);
     vbox_mid = gtk_vbox_new(TRUE,2);
@@ -23,7 +30,6 @@ CGtk::CGtk(CQPed *Q){
     gtk_box_pack_start(GTK_BOX(hbox_main), vbox_mid,TRUE,TRUE,2);
     gtk_box_pack_start(GTK_BOX(hbox_main), vbox_right,TRUE, TRUE,2);
 
-    char text[100];
     //left
     button_connect = gtk_button_new();
     show_disconnected();
@@ -35,15 +41,59 @@ CGtk::CGtk(CQPed *Q){
     gtk_box_pack_start(GTK_BOX(hbox_button),button_connect,FALSE,FALSE,0);
     gtk_box_pack_start(GTK_BOX(hbox_button),button_leg,FALSE,FALSE,0);
     uint8_t i;
+    char text[100];
     for(i=0;i<SERVOS;i++){
         sprintf(text, GUI_SERVO_LABEL_FORMAT, i,0.0,0);
         servo_label[i] = gtk_label_new(NULL); 
         gtk_label_set_markup(GTK_LABEL(servo_label[i]), text);
         gtk_box_pack_start(GTK_BOX(vbox_left), servo_label[i],FALSE,TRUE,0);
     }
+    //spinbuttons
+    gtk_box_pack_start(GTK_BOX(vbox_left), table_spinButtons, FALSE, FALSE,0);
+    adjustmentSz2 = gtk_adjustment_new(qp->kalman1.getSz(),
+                                       -10.0, 10.0, 0.001, 0.0, 0.0);
+    adjustmentSw2 = gtk_adjustment_new(qp->kalman1.getSw(),
+                                       -10.0, 10.0, 0.001, 0.0, 0.0);
+    spinButtonSz2 = gtk_spin_button_new(GTK_ADJUSTMENT(adjustmentSz2), 0.0, 3);
+    spinButtonSw2 = gtk_spin_button_new(GTK_ADJUSTMENT(adjustmentSw2), 0.0, 3);
+    spinButtonSz2Label = gtk_label_new("Sz2: ");
+    spinButtonSw2Label = gtk_label_new("Sw2: ");
+    adjustmentSz1 = gtk_adjustment_new(qp->kalman2.getSz(),
+                                       -10.0, 10.0, 0.001, 0.0, 0.0);
+    adjustmentSw1 = gtk_adjustment_new(qp->kalman2.getSw(),
+                                       -10.0, 10.0, 0.001, 0.0, 0.0);
+    spinButtonSz1 = gtk_spin_button_new(GTK_ADJUSTMENT(adjustmentSz1), 0.0, 3);
+    spinButtonSw1 = gtk_spin_button_new(GTK_ADJUSTMENT(adjustmentSw1), 0.0, 3);
+    spinButtonSz1Label = gtk_label_new("Sz1: ");
+    spinButtonSw1Label = gtk_label_new("Sw1: ");
+    gtk_table_attach_defaults( GTK_TABLE(table_spinButtons),
+                               spinButtonSz1Label,
+                               0, 1, 0, 1 );
+    gtk_table_attach_defaults( GTK_TABLE(table_spinButtons),
+                               spinButtonSz1,
+                               1, 2, 0, 1 );
+    gtk_table_attach_defaults( GTK_TABLE(table_spinButtons),
+                               spinButtonSw1Label,
+                               0, 1, 1, 2 );
+    gtk_table_attach_defaults( GTK_TABLE(table_spinButtons),
+                               spinButtonSw1,
+                               1, 2, 1, 2 );
+    gtk_table_attach_defaults( GTK_TABLE(table_spinButtons),
+                               spinButtonSz2Label,
+                               0, 1, 2, 3 );
+    gtk_table_attach_defaults( GTK_TABLE(table_spinButtons),
+                               spinButtonSz2,
+                               1, 2, 2, 3 );
+    gtk_table_attach_defaults( GTK_TABLE(table_spinButtons),
+                               spinButtonSw2Label,
+                               0, 1, 3, 4 );
+    gtk_table_attach_defaults( GTK_TABLE(table_spinButtons),
+                               spinButtonSw2,
+                               1, 2, 3, 4 );
     graphDa = gtk_drawing_area_new();
     gtk_widget_set_size_request(graphDa, GUI_DA_SIZE,GUI_DA_SIZE);
-    gtk_box_pack_end(GTK_BOX(vbox_left), graphDa, FALSE, TRUE, 0); 
+    gtk_box_pack_end(GTK_BOX(vbox_left), graphDa, FALSE, TRUE, 0);
+
     //mid
     da = gtk_drawing_area_new();
     gtk_widget_set_size_request(da, GUI_DA_SIZE,GUI_DA_SIZE-100);
@@ -51,6 +101,7 @@ CGtk::CGtk(CQPed *Q){
     topDa = gtk_drawing_area_new();
     gtk_widget_set_size_request(topDa,GUI_DA_SIZE,GUI_DA_SIZE);
     gtk_box_pack_start(GTK_BOX(vbox_mid),topDa, FALSE, TRUE, 0);
+    
     //right
     for(i=0;i<QP_LEGS;i++){
         sprintf(text, "X%d Y%d Z%d",i,i,i);
@@ -69,6 +120,7 @@ CGtk::CGtk(CQPed *Q){
     gtk_widget_set_size_request(gamepadDrawing, -1, 150);
     //add main container to window
     gtk_container_add(GTK_CONTAINER(window), vbox_main);
+    
     //connect signals
     g_signal_connect(window,
                     "destroy",
@@ -103,7 +155,26 @@ CGtk::CGtk(CQPed *Q){
                     G_CALLBACK(paintGraph), 
                     (gpointer)this);
 
+    g_signal_connect(G_OBJECT(spinButtonSz1), 
+                    "value-changed", 
+                    G_CALLBACK(spinSz1Changed), 
+                    (gpointer)qp);
+    g_signal_connect(G_OBJECT(spinButtonSw1), 
+                    "value-changed", 
+                    G_CALLBACK(spinSw1Changed), 
+                    (gpointer)qp);
+    g_signal_connect(G_OBJECT(spinButtonSz2), 
+                    "value-changed", 
+                    G_CALLBACK(spinSz2Changed), 
+                    (gpointer)qp);
+    g_signal_connect(G_OBJECT(spinButtonSw2), 
+                    "value-changed", 
+                    G_CALLBACK(spinSw2Changed), 
+                    (gpointer)qp);
     connect_timeout();
+    //first interface update
+    updateServoData();
+    
     gtk_widget_show_all(window);
 }
 
@@ -134,10 +205,11 @@ void CGtk::show_right(){
 void CGtk::updateADC(){
     char text[100];
     sprintf(text, GUI_ADC_LABEL_FORMAT,
-    qp->adc[0],
-    qp->filterX.x, 
-    qp->adc[1],
-    qp->filterY.x);
+            qp->adc[0],
+            qp->kalman1.getX(), 
+            qp->adc[1],
+            qp->kalman2.getX()
+           );
     gtk_label_set_markup(GTK_LABEL(adc_label), text);
 }
 
@@ -192,6 +264,7 @@ static gboolean
 key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer data){
     guint key = ((GdkEventKey*)event)->keyval;
     CGtk* gui = ((CGtk*)data);
+    gboolean keypressHandled = TRUE;
     switch(key){
     case 'q':
         gui->running = 0;
@@ -256,12 +329,17 @@ key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer data){
         if(gui->qp->changeAllLegs(0,0,GUI_KEYBOARD_SPEED)==0)
         gui->qp->sendToDev();
         break;
+    default :
+        keypressHandled = FALSE;
     }
-    usleep(10000);//allow device to transmit before next command;
-    gui->updateServoData();
-    gui->updatePositions();
-    paint(gui->da, NULL, gui);
-    return TRUE;
+    if (keypressHandled == TRUE){
+        usleep(10000);//allow device to transmit before next command;
+        gui->updateServoData();
+        gui->updatePositions();
+        paint(gui->da, NULL, gui);
+        paintTop(gui->topDa, NULL, gui);
+    }
+    return keypressHandled;
 }
 
 
@@ -288,9 +366,10 @@ static gboolean timeout1(gpointer data){
     if(gui->running == 0) return FALSE;
     gui->qp->getUsbData();
     gui->qp->fillPSController();
-    gui->graph.addPoint(gui->qp->pscon.getRx());
-//    gui->qp->fillADC();
-//    gui->updateADC();
+    gui->qp->fillADC();
+    gui->updateADC();
+    gui->graphX.addPoint(gui->qp->kalman1.getX());
+    gui->graphY.addPoint(gui->qp->kalman2.getX());
     gui->updateGamePadDrawing();
     if(gui->qp->moveByStick()){
         gui->qp->sendToDev();
@@ -310,6 +389,37 @@ static gboolean timeout1(gpointer data){
 static void timeout_disconnected(gpointer data){
     g_print("disconnected timeout\n");//placeholder
 }
+
+
+static void spinSz1Changed(GtkSpinButton *spinButton, gpointer data){
+    CQPed *qp = ((CQPed *)data);
+    qp->kalman1.setSz((double) (gtk_spin_button_get_value(spinButton)));
+
+}
+
+static void spinSw1Changed(GtkSpinButton *spinButton, gpointer data){
+    CQPed *qp = ((CQPed *)data);
+    qp->kalman1.setSw((double) (gtk_spin_button_get_value(spinButton)));
+
+}
+static void spinSz2Changed(GtkSpinButton *spinButton, gpointer data){
+    CQPed *qp = ((CQPed *)data);
+    qp->kalman2.setSz((double) (gtk_spin_button_get_value(spinButton)));
+
+}
+
+static void spinSw2Changed(GtkSpinButton *spinButton, gpointer data){
+    CQPed *qp = ((CQPed *)data);
+    qp->kalman2.setSw((double) (gtk_spin_button_get_value(spinButton)));
+
+}
+
+
+
+
+
+
+//------------ CAIRO STUFF ---------------------------
 
 void drawTriangle(cairo_t *cr, double x, double y, double size, uint8_t turn){
     double mirror;
@@ -405,7 +515,7 @@ static void paintGP(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     else 
         cairo_set_source_rgb(cr, 0,0,0);
     cairo_arc(cr, 
-              pesCenterX + DPADSPACING, 
+              shapesCenterX + DPADSPACING, 
               shapesCenterY, 
               10, 
               0, 
@@ -741,8 +851,10 @@ paintGraph(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
     cairo_stroke(cr);
     
     //graphs
+    cairo_set_source_rgb(cr, 0,0,1);
+    createLineFromGraph(cr, &(gui->graphX), alloc.height/2.0, 5.0);
     cairo_set_source_rgb(cr, 1,0,0);
-    createLineFromGraph(cr, &(gui->graph), alloc.height/2);
+    createLineFromGraph(cr, &(gui->graphY), alloc.height/2.0, 5.0);
     
 }
 
@@ -751,18 +863,18 @@ paintGraph(GtkWidget *widget, GdkEventExpose *eev, gpointer data){
 //------------------------------
 // CREATE LINE FROM GRAPH CLASS
 //-------------------------------
-void createLineFromGraph(cairo_t *cr, Graph* graph, double zeroY){
+void createLineFromGraph(cairo_t *cr, Graph* graph, double zeroY, double scale){
     //color and linewidth are assumed to be set
     cairo_move_to(cr, 0, zeroY);
     GraphIndex i;
     GraphIndex currentIndex = graph->getIndex();
     uint16_t xAxis = 0;
     for(i=currentIndex+1; i<GRAPH_DATA_LENGTH; i++){
-        cairo_line_to(cr, xAxis, zeroY - graph->getValue(i));
+        cairo_line_to(cr, xAxis, zeroY - (graph->getValue(i)*scale));
         xAxis++;
     }
     for(i=0; i < currentIndex+1; i++){
-        cairo_line_to(cr, xAxis, zeroY - graph->getValue(i));
+        cairo_line_to(cr, xAxis, zeroY - (graph->getValue(i)*scale));
         xAxis++;
     }
     cairo_stroke(cr);
