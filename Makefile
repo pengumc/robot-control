@@ -8,14 +8,14 @@ GTKFLAGS = $(shell pkg-config --cflags gtk+-2.0)
 CFLAGS = -Iinclude -Isrc -I. $(GTKFLAGS)
 CPPFLAGS = $(CFLAGS) -std=c++0x  
 USBLIBS := $(shell libusb-config --libs)
-GTKLIBS = $(shell pkg-config --libs gtk+-2.0)
+GTKLIBS = $(shell pkg-config --libs gtk+-2.0 gmodule-export-2.0)
 LIBS =  -Llib/gsl -Llib/robot-control -lgslcblas -lgsl $(LINUX) #put either LINUX or WINDOWS here
 LINUX = -lpthread $(USBLIBS) $(GTKLIBS)
 WINDOWS = -lusb 
 COMPILER = g++
 CC = gcc
 OUTPUTNAME = $(NAME) 
-OBJECTS = opendevice.o CPSController.o CServo.o CUsbDevice.o CGtk.o CQPed.o CAngle.o rotation.o CLeg.o CSolver_new.o Graph.o KalmanFilter.o main.o
+OBJECTS = opendevice.o CPSController.o CServo.o CUsbDevice.o CGtk.o CQPed.o CAngle.o rotation.o CLeg.o CSolver_new.o Graph.o KalmanFilter.o Gtk_gui.o main.o
 
 
 .PHONY:all, clean, force

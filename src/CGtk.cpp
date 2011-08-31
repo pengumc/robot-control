@@ -18,6 +18,7 @@ CGtk::CGtk(CQPed *Q){
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window),"Robot_control");
     vbox_main = gtk_vbox_new(FALSE,2);
+    hbox_bottom = gtk_hbox_new(FALSE,2);
     hbox_main = gtk_hbox_new(FALSE,2);
     vbox_left = gtk_vbox_new(FALSE,2);
     hbox_button = gtk_hbox_new(FALSE,2);
@@ -26,6 +27,7 @@ CGtk::CGtk(CQPed *Q){
     gtk_widget_set_size_request(vbox_right, 100, -1);
     vbox_mid = gtk_vbox_new(TRUE,2);
     gtk_box_pack_start(GTK_BOX(vbox_main), hbox_main, FALSE, TRUE,2);
+    gtk_box_pack_start(GTK_BOX(vbox_main), hbox_bottom, FALSE, FALSE,2);
     gtk_box_pack_start(GTK_BOX(hbox_main), vbox_left,FALSE, TRUE,2);
     gtk_box_pack_start(GTK_BOX(hbox_main), vbox_mid,TRUE,TRUE,2);
     gtk_box_pack_start(GTK_BOX(hbox_main), vbox_right,TRUE, TRUE,2);
@@ -114,12 +116,13 @@ CGtk::CGtk(CQPed *Q){
     }
     adc_label = gtk_label_new("");
     gtk_box_pack_start(GTK_BOX(vbox_right), adc_label, TRUE, TRUE, 0);
-    //gamepad drawing
+    //gamepad drawing + angle gui
     gamepadDrawing = gtk_drawing_area_new();
-    gtk_box_pack_start(GTK_BOX(vbox_main), gamepadDrawing, FALSE, FALSE,0);
-    gtk_widget_set_size_request(gamepadDrawing, -1, 150);
+    gtk_box_pack_start(GTK_BOX(hbox_bottom), gamepadDrawing, FALSE, TRUE,0);
+    gtk_widget_set_size_request(gamepadDrawing, 500, 150);
     //add main container to window
     gtk_container_add(GTK_CONTAINER(window), vbox_main);
+
     
     //connect signals
     g_signal_connect(window,

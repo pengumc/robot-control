@@ -57,6 +57,7 @@ class CGtk{
         GtkWidget *window;
         GtkWidget *vbox_main;        
         GtkWidget *gamepadDrawing;
+        GtkWidget *hbox_bottom;
         GtkWidget *hbox_main;
         GtkWidget *vbox_left;
         GtkWidget *hbox_button;
