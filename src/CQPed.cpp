@@ -97,8 +97,8 @@ void CQPed::reset(){
     //rot_matrix_print(mainBodyR);
 
     //accelerometer
-    acc_mid[0] = 128;
-    acc_mid[1] = 128;
+    acc_mid[0] = 126;
+    acc_mid[1] = 127;
     kalman1.setSz(3.0);
     kalman1.setSw(0.01);
     kalman2.setSz(3.0);
@@ -304,7 +304,7 @@ void CQPed::fillADC(){
     kalman1.step( ((double)adc[0]) - ((double)acc_mid[0])); 
     kalman2.step( ((double)adc[1]) - ((double)acc_mid[1]));
     /*
-    double phi = asin(filterX.x/30);
+    double phi = asin(kalman2.getX()/30.0);
     rot_vector_setAll(V, 0,0,phi);
     rot_vector_minus(V, mainBodyAngles);
     if(changeMainBodyAngle(V[0],V[1],V[2])==0);

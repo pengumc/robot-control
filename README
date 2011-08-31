@@ -85,6 +85,7 @@ changes in 0.7
 TODO
 -add load save hardware functions
 -add angle label to interface
+-add horizon circles for angles from accelerometer
 -create interface to select/deselect legs and move as group
 -cleanup CGtk
 -accelerometer filter interface + graph (new class)

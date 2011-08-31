@@ -172,6 +172,9 @@ CGtk::CGtk(CQPed *Q){
                     G_CALLBACK(spinSw2Changed), 
                     (gpointer)qp);
     connect_timeout();
+    //first interface update
+    updateServoData();
+    
     gtk_widget_show_all(window);
 }
 
@@ -329,10 +332,13 @@ key_press_callback(GtkWidget* widget, GdkEvent *event, gpointer data){
     default :
         keypressHandled = FALSE;
     }
-    usleep(10000);//allow device to transmit before next command;
-    gui->updateServoData();
-    gui->updatePositions();
-    paint(gui->da, NULL, gui);
+    if (keypressHandled == TRUE){
+        usleep(10000);//allow device to transmit before next command;
+        gui->updateServoData();
+        gui->updatePositions();
+        paint(gui->da, NULL, gui);
+        paintTop(gui->topDa, NULL, gui);
+    }
     return keypressHandled;
 }
 
