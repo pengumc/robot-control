@@ -365,11 +365,12 @@ static gboolean timeout1(gpointer data){
     CGtk* gui = ((CGtk*)data);
     if(gui->running == 0) return FALSE;
     gui->qp->getUsbData();
-    gui->qp->fillPSController();
     gui->qp->fillADC();
     gui->updateADC();
     gui->graphX.addPoint(gui->qp->kalman1.getX());
     gui->graphY.addPoint(gui->qp->kalman2.getX());
+
+    gui->qp->fillPSController();
     gui->updateGamePadDrawing();
     if(gui->qp->moveByStick()){
         gui->qp->sendToDev();

@@ -1,0 +1,187 @@
+<html><head><title>robot-control functions</title>
+<style>
+type{
+    font-weight:normal;
+    color:darkgreen;
+}
+member{
+    color:darkred;
+}
+li{
+    margin:10px;
+}
+p{
+    font-size:80%;
+    font-style:italic;
+    color:darkblue;
+}
+</style>
+</head>
+<body>
+<ul>
+    <li>CAngle<ul>
+        <li>Constructor(<type>double</type> s)
+            <p>Create instance with angle s in radians<br>
+
+        operators: <br>
+            = <type>double</type> : sets the angle<br>
+            -/+ <type>double</type>/<type>CAngle</type> : add/substract angles (returns new instance)<br>
+            </p>
+        </li>
+
+        <li><type>double</type> get()<br>
+            <p>returns the angle in radians</p>
+        </li>
+
+        <li><type>char</type> isBetween(<type>double</type> min, <type>double</type> max, <type>double</type> test)
+            <p>returns 0 if test is not between min and max<br>
+            returns 1 otherwise<br>
+            *   isBetween( -PI/2, PI/2, 0)  will return 1.<BR>
+            *   isBetween( PI/2, -PI/2, 0)  will return 0.<BR>
+            *   isBetween( -PI/2, PI/2, PI) will return 0.<BR>
+            *   isBetween( PI/2, -PI/2, PI) will return 1.<BR>
+            </p>
+        </li>
+
+<!--        <li>set(<type>double</type> s)
+            <p>set the angle to s radians</p>
+        </li>
+-->
+        <li><type>double</type> anglize(<type>double</type> s)
+            <p>returns s but within -PI and PI</p>
+        </li>
+
+        <li>printAngle()
+            <p>prints the stored angle to stdout</p>
+        </li>
+
+        <li>flipY()
+            <p>sets the angle to PI - the current angle<br>
+            effectively mirroring the angle along the y-axis of the unit circle</p>
+        </li>
+
+    </ul></li>
+
+    <li>CServo2<ul>
+        <li>Contructor()</li>
+        <li>reset()
+            <p>resets servo angle to 0 and returns all orientations back to default<br>
+            (offset, minPulse, maxPulse, midPulse, direction, K, pw)</p>
+        </li>
+
+        <li><type>double</type> pulsewidthToAngle()
+            <p>returns the angle (including offset and orientation) of the servo in radians</p>
+        </li>
+        <li><type>double</type> pulsewidthToAngle(<type>uint8_t</type> s)
+            <p>returns the angle (including offset and orientation) in radians that the servo would have if the pulsewidth was set to s </p>
+        </li>
+
+        <li><type>uint8_t</type> angleToPulsewidth()
+            <p>returns the pulsewidth of the servo-signal required to set the servo to it's current angle</p>
+        </li>
+        <li><type>uint8_t</type> angleToPulsewidth(<type>double</type> s)
+            <p>returns the pulsewidth of the servo-signal required to set the servo angle to s radians </p>
+        </li>
+
+        <li<type>uint8_t</type> isVaid(<type>double</type> s)
+            <p>tests wether angle s (in radians) is within the limits of the servo, taking offset and orientation into account<br>
+            returns 1 if angle is valid<br>
+            returns 0 otherwise</p>
+        </li>
+
+        <li>setAngle(<type>double</type> s)
+            <p>set the angle to s radians.<br>
+            does nothing if s is not valid</p>
+        </li>
+
+        <li>changeAngle(<type>double</type> s)
+            <p>increase the current angle by s radians<br>
+            does nothing if the result is not valid</p>
+        </li>
+
+        <li>mirrorZ()
+            <p>same as flipY?</p>
+        </li>
+
+        <li><type>double</type> getAngle()
+            <p>returns the current angle in radians</p>
+        </li>
+
+        <li><type>uint8_t</type> getPW()
+            <p>returns the current pulsewidth</p>
+        </li>
+
+        <li>setPW(<type>uint8_t</type> p)
+            <p>sets the pulsewidth to p, also updates the angle<br>
+            does nothing if the resulting angle is not valid</p>
+        </li>
+
+        <li>flipDirection()
+            <p>toggles the direction of the servo.</p>
+        </li>
+
+        <li>printDetails()
+            <p>prints the following to stdout<br>
+            * the valid angle-range<br>
+            * the valid pulsewidth-range<br>
+            * the offset<br>
+            * the current angle in radians<br>
+            * the current pulsewidth </p>
+        </li>
+            
+        <li><type>CAngle</type> <member>offset</member>
+            <p>Holds the offset. Useful for when a servo is physically tilted</p>
+        </li>
+    </ul></li>
+
+    <li>CLeg<ul>
+        <li>contructor(<type>CServo2*</type> servoSubSet, <type>solverParams2_t*</type> lengths, <type>rot_vector_t*</type> COBOffset) </li>
+            <p>Creates a Leg using the first three CServo2 instances in servoSubSet<br>
+            connect the leg to the center of body (COB) with offset COBOffset</p>
+
+        <li>printServoAngles()
+            <p>prints the servo angles of all servos in the leg to stdout</p>
+        </li>
+
+        <li>printPositions()
+            <p>pints to stdout:<br>
+            * coordinates of all servo pivot-points<br>
+            * coordinates of the endpoint of the leg (the 'foot')<br>
+            (all relative to the pivot point of the first servo)</p>
+        </li>
+        
+        <li>UpdatePos()
+            <p>SHOULD BE PRIVATE<br>
+            update the stored pivot-point coordinates by calculating them from the servo angles</p>
+        </li>
+        
+        <li> getX(<type>uint8_t</type> point)
+            <p>returns the x coordinate of servo number point<br>
+            * point= 0..2 for the actual servo pivot-points<br>
+            * point= 3 for the endpoint</p>
+        </li>
+        <li> getY(<type>uint8_t</type> point)
+            <p> see getX</p>
+        </li>
+        <li> getZ(<type>uint8_t</type> point)
+            <p> see getX</p>
+        </li>
+
+        <li>fillWithPos(<type>rot_vector_t*</type> v, <type>uint8_t</type> point)</li>
+            <p>write the coordinates of the servo designated by point to v<br>
+            * point= 0..2 for servo 0..2<br>
+            * point= 3 for the endpoint of the leg<br>
+            (coordinates are relative to servo 0)</p>
+        </li>
+
+        <li>relativeMoveEndPoint
+            <p>
+        </li>
+        <li>setEndPoint</li>
+        <li>calcAndTest</li>
+        <li>commit</li>
+    </ul></li>
+
+</ul>
+    
+</body></html>
