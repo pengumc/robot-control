@@ -1,4 +1,4 @@
-Version 06->0.7 
+Version 0.7 
 XYZ/rotanional control for 4 connected 3DOF legs with gtk gui
   .___.X.___.
 ./           \.
@@ -80,6 +80,8 @@ changes in 0.6
 changes in 0.7
 -added top-down view
 -added graph area
+-circuit diagrams available
+-kalman filter available
 
 
 TODO
