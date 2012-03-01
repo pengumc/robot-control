@@ -1,0 +1,273 @@
+<html><head><title>robot-control functions</title>
+<style>
+type{
+    font-weight:normal;
+    color:darkgreen;
+}
+member{
+    color:darkred;
+}
+li{
+    margin:10px;
+}
+p{
+    font-size:80%;
+    font-style:italic;
+    color:darkblue;
+}
+b{
+    background-color:white;
+}
+b:hover{
+    background-color:#ddd;
+}
+</style>
+<script>
+function toggle(e){
+    var li = e.parentNode.getElementsByTagName('li');
+    var visibility = (li[0].style.display == 'none')? 'list-item' : 'none';
+    for(var i = 0, el; el = li[i]; i++){
+        el.style.display = visibility;
+    }
+}
+</script>
+</head>
+<body>
+<ul>
+    <li><b onclick="toggle(this)">CAngle</b><ul >
+
+        <li>Constructor(<type>double</type> s)
+            <p>Create instance with angle s in radians<br>
+
+        operators: <br>
+            = <type>double</type> : sets the angle<br>
+            -/+ <type>double</type>/<type>CAngle</type> : add/substract angles (returns new instance)<br>
+            </p>
+        </li>
+
+        <li><type>double</type> get()<br>
+            <p>returns the angle in radians</p>
+        </li>
+
+        <li><type>char</type> isBetween(<type>double</type> min, <type>double</type> max, <type>double</type> test)
+            <p>returns 0 if test is not between min and max<br>
+            returns 1 otherwise<br>
+            *   isBetween( -PI/2, PI/2, 0)  will return 1.<BR>
+            *   isBetween( PI/2, -PI/2, 0)  will return 0.<BR>
+            *   isBetween( -PI/2, PI/2, PI) will return 0.<BR>
+            *   isBetween( PI/2, -PI/2, PI) will return 1.<BR>
+            </p>
+        </li>
+
+<!--        <li>set(<type>double</type> s)
+            <p>set the angle to s radians</p>
+        </li>
+-->
+        <li><type>double</type> anglize(<type>double</type> s)
+            <p>returns s but within -PI and PI</p>
+        </li>
+
+        <li>printAngle()
+            <p>prints the stored angle to stdout</p>
+        </li>
+
+        <li>flipY()
+            <p>sets the angle to PI - the current angle<br>
+            effectively mirroring the angle along the y-axis of the unit circle</p>
+        </li>
+
+    </ul></li>
+
+    <li><b onclick="toggle(this)"> CServo2 </b><ul>
+        <li>Contructor()</li>
+        <li>reset()
+            <p>resets servo angle to 0 and returns all orientations back to default<br>
+            (offset, minPulse, maxPulse, midPulse, direction, K, pw)</p>
+        </li>
+
+        <li><type>double</type> pulsewidthToAngle()
+            <p>returns the angle (including offset and orientation) of the servo in radians</p>
+        </li>
+        <li><type>double</type> pulsewidthToAngle(<type>uint8_t</type> s)
+            <p>returns the angle (including offset and orientation) in radians that the servo would have if the pulsewidth was set to s </p>
+        </li>
+
+        <li><type>uint8_t</type> angleToPulsewidth()
+            <p>returns the pulsewidth of the servo-signal required to set the servo to it's current angle</p>
+        </li>
+        <li><type>uint8_t</type> angleToPulsewidth(<type>double</type> s)
+            <p>returns the pulsewidth of the servo-signal required to set the servo angle to s radians </p>
+        </li>
+
+        <li><type>uint8_t</type> isVaid(<type>double</type> s)
+            <p>tests wether angle s (in radians) is within the limits of the servo, taking offset and orientation into account<br>
+            returns 1 if angle is valid<br>
+            returns 0 otherwise</p>
+        </li>
+
+        <li>setAngle(<type>double</type> s)
+            <p>set the angle to s radians.<br>
+            does nothing if s is not valid</p>
+        </li>
+
+        <li>changeAngle(<type>double</type> s)
+            <p>increase the current angle by s radians<br>
+            does nothing if the result is not valid</p>
+        </li>
+
+        <li>mirrorZ()
+            <p>same as flipY?</p>
+        </li>
+
+        <li><type>double</type> getAngle()
+            <p>returns the current angle in radians</p>
+        </li>
+
+        <li><type>uint8_t</type> getPW()
+            <p>returns the current pulsewidth</p>
+        </li>
+
+        <li>setPW(<type>uint8_t</type> p)
+            <p>sets the pulsewidth to p, also updates the angle<br>
+            does nothing if the resulting angle is not valid</p>
+        </li>
+
+        <li>flipDirection()
+            <p>toggles the direction of the servo.</p>
+        </li>
+
+        <li>printDetails()
+            <p>prints the following to stdout<br>
+            * the valid angle-range<br>
+            * the valid pulsewidth-range<br>
+            * the offset<br>
+            * the current angle in radians<br>
+            * the current pulsewidth </p>
+        </li>
+            
+        <li><type>CAngle</type> <member>offset</member>
+            <p>Holds the offset. Useful for when a servo is physically tilted</p>
+        </li>
+    </ul></li>
+
+    <li><b onclick="toggle(this)">CLeg</b><ul>
+        <li>contructor(<type>CServo2*</type> servoSubSet, <type>solverParams2_t*</type> lengths, <type>rot_vector_t*</type> COBOffset)
+            <p>Creates a Leg using the first three CServo2 instances in servoSubSet<br>
+            connect the leg to the center of body (COB) with offset COBOffset</p>
+        </li>
+
+        <li>printServoAngles()
+            <p>prints the servo angles of all servos in the leg to stdout</p>
+        </li>
+
+        <li>printPositions()
+            <p>pints to stdout:<br>
+            * coordinates of all servo pivot-points<br>
+            * coordinates of the endpoint of the leg (the 'foot')<br>
+            (all relative to the pivot point of the first servo)</p>
+        </li>
+        
+        <li>updatePos()
+            <p>SHOULD BE PRIVATE<br>
+            update the stored pivot-point coordinates by calculating them from the servo angles</p>
+        </li>
+        
+        <li> getX(<type>uint8_t</type> point)
+            <p>returns the x coordinate of servo number point<br>
+            * point= 0..2 for the actual servo pivot-points<br>
+            * point= 3 for the endpoint</p>
+        </li>
+        <li> getY(<type>uint8_t</type> point)
+            <p> see getX</p>
+        </li>
+        <li> getZ(<type>uint8_t</type> point)
+            <p> see getX</p>
+        </li>
+
+        <li>fillWithPos(<type>rot_vector_t*</type> v, <type>uint8_t</type> point)
+            <p>write the coordinates of the servo designated by point to v<br>
+            * point= 0..2 for servo 0..2<br>
+            * point= 3 for the endpoint of the leg<br>
+            (coordinates are relative to servo 0)</p>
+        </li>
+
+        <li><type>int</type> relativeMoveEndPoint(<type>rot_vector_t*<type> v)
+            <p>try to change the endpoint by v<br>
+            nothing happens until commit() is called<br>
+            if the coordinates are reachable by the leg:<br>
+             return 0 and set readyFlag to 1<br>
+            otherwise, clear the readyFlag and return -1</p>
+        </li>
+
+        <li><type>int</type> setEndPoint(<type>rot_vector_t*</type> v)
+            <p>try to move the endpoint to v (relative to COB)<br>
+            nothing happens until commit() is called<br>
+            if the coordinates are reachable by the leg:<br>
+             return 0 and set readyFlag to LEG_READY<br>
+            otherwise, clear the readyFlag and return -1</p>
+        </li>
+
+        <li><type>int</type> calcAndTest(<type>rot_vector_t*</type> v)
+            <p>check if the position stored in v (relative to servo 0)<br>
+            also sets readyFlag to LEG_READY on success<br>
+            returns 0 if position is reachable by leg<br>
+            returns -1 otherwise</p>
+        </li>
+
+        <li>commit()
+            <p>write the last tested angles from resultVector to the servos if readyFlag == 1<br>
+            this should be called after a succesful setEndpoint/moveRelativeEndpoint<br>
+            the readyFlag is set to LEG_NOT_READY after this </p>
+        </li>
+
+        <li><type>int</type> <member>readyFlag</member>
+            <p>indicates a set of valid angles is ready to be committed<br>
+            values: LEG_READY, LEG_NOT_READY</p>
+        <li>
+    </ul></li>
+
+    <li>Rotation<ul>
+        <li>rot_vector_t_set(<type>rot_vector_t*</type> v, <type>uint8_t</type> n, <type>rot_vector_t*</type> a)
+            <p>set the nth value of a to v</p>
+        </li>
+
+        <li>rot_vector_t_change(<type>rot_vector_t*</type> v, <type>uint8_t</type> n, <type>rot_vector_t*</type> a)
+            <p>change the nth value of a by v</p>
+        </li>
+
+        <li>rot_vector_t_setAll(<type>rot_vector_t*</type> v, <type>rot_vector_t</type> x, <type>rot_vector_t</type> y, <type>rot_vector_t</type> z)
+            <p>set vector v to (x,y,z]</p>
+        </li>
+
+        <li>rot_vector_changeAll((<type>rot_vector_t*</type> v, <type>rot_vector_t</type> x, <type>rot_vector_t</type> y, <type>rot_vector_t</type> z)
+            <p>change vector v by (x,y,z)</p>
+        </li>
+
+        <li>rot_vector_copy(<type>rot_vector_t*</type> source, <type>rot_vector_t*</type> target)
+            <p>copy all values from source to target</p>
+        </li>
+
+        <li><type>rot_vector_t</type> rot_vector_get(<type>rot_vector_t*</type> v, <type>uint8_t</type> n)
+            <p>get the nth value of vector v</p>
+        </li>
+
+        <li>rot_vector_print</li>
+        <li>rot_matrix_print</li>
+        <li>rot_vector_get_length</li>
+        <li>rot_vector_add</li>
+        <li>rot_vector_minus</li>
+        <li>rot_free</li>
+        <li>rot_vector_alloc</li>
+        <li>rot_matrix_alloc</li>
+        <li>rot_matrix_fill</li>
+        <li>rot_matrix_scale</li>
+        <li>rot_matrix_set</li>
+        <li>rot_matrix_dot_vector</li>
+        <li>rot_matrix_invert</li>
+        <li>rot_matrix_build_from_angles</li>
+
+ </ul></li>
+
+</ul>
+    
+</body></html>

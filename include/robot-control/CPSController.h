@@ -55,6 +55,7 @@ class CPSController{
         void printData();
    private:
         PSC_data_t dat;
+        uint8_t connected;
         
 };
 #endif

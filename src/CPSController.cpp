@@ -11,6 +11,7 @@ CPSController::CPSController(){
     dat.Ry_mid = 128;
     dat.Lx_mid = 128;
     dat.Ly_mid = 128;
+    connected = 0;
 }
 
 void CPSController::printData(){
