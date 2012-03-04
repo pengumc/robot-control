@@ -1,0 +1,14 @@
+<class name="CAccelerometer">
+    <function name="get_phi">
+        return the tilt around the x-axis
+    </function>
+    <function name="get_theta">
+        return the tilt around the z-axis of the quadruped (or y-axis of the accelerometer)
+    </function>
+    <function name="step">
+        perform one filter-step with the new adc measurements for the x,y,z axis of the accelerometer.
+    </function>
+    <function name="storeAnglesInVector">
+        store the tilt-angles in vectorToFill, ready to use for a new rotational matrix
+    </function>
+</class>
